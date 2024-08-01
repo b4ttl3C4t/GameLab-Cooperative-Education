@@ -1,0 +1,40 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lato&display=swap");
+
+:root {
+  --blue: #2980b9;
+  --blue0: #3498db;
+  --blue-1: #74b9ff;
+  --white: #ecf0f1;
+  --nicegreen: #4ecca3;
+  --black: #393e46;
+  --spacemono: "Space Mono", monospace;
+  --opensans: "Open Sans", sans-serif;
+}
+
+* {
+  text-decoration: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--opensans);
+}
+
+img {
+  max-width: 100%;
+}
+
+body {
+  background-color: #ffffff;
+}
+
+navbar {
+  .logo {
+    font-size: 28px;
+    color: #393e46;
+    font-weight: bold;
+    padding: 0 12%;
+    margin-top: 32px;
+  }
+}

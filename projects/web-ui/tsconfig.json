@@ -1,0 +1,19 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ],
+  "compilerOptions": {
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "paths": {
+      "@emotion/react": [ "node_modules/@emotion/react" ]
+    }
+  }
+}
