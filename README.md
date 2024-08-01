@@ -2,6 +2,13 @@
 
 ## Pre-requirement
 
+### 早安這裡是w-星人
+因為檔案又多又大名字又長等各種麻煩的原因，我沒有把node_modules放上來，如果你直接clone記得執行
+   ```sh
+    pnpm --filter web-server add cors
+    pnpm --filter web-server add @types/cors -D
+   ```
+
 ### 安裝 npm
 
 如果你的系統中尚未安裝 npm，你可以通過以下步驟進行安裝：
