@@ -10,7 +10,7 @@ const MeetRoom = () => {
       connect(import.meta.env.VITE_ENDPOINT);
     }
   }, [connect, connected]);
-
+  console.log(import.meta.env.VITE_ENDPOINT);
   return (
     <>
       <NameBox />

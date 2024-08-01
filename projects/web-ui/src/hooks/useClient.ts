@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { io, type Socket } from "socket.io-client";
+import {type Socket } from "socket.io-client";
+import socketService from "./socketService";
 interface Client {
   username: string;
   connected: boolean;
@@ -12,14 +13,8 @@ export const useClient = create<Client>((set) => ({
   connected: false,
   setUsername: (username: string) => set({ username }),
   connect: async (url: string) => {
-    const socket = io(url, {
-      transports: ["websocket"]
-    });
-    socket.once("connect", () => {
-      socket.emit("ping")
-    });
-    socket.once("close", () => set({ connected: false }));
-    socket.once("error", () => set({ connected: false }));
+    const socket = socketService.connect(url);
+    set({ connected: socketService.isConnected() });
     return socket;
   },
 }));
