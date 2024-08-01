@@ -1,0 +1,19 @@
+{
+  "name": "quick-meet",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "client": "pnpm --filter web-ui run dev",
+    "server": "pnpm --filter web-server run dev",
+    "dev": "pnpm -r run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.11",
+    "typescript": "^5.2.2"
+  }
+}

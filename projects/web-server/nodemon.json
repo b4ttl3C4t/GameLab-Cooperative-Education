@@ -1,0 +1,8 @@
+{
+  "watch": [
+    "dist"
+  ],
+  "ext": "js",
+  "delay": "1000",
+  "exec": "node -r dotenv/config dist/main.js"
+}
