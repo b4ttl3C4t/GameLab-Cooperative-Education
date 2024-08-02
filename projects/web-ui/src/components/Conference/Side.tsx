@@ -117,7 +117,7 @@ let nextMessageId = 0;
 export const Side = () => {
   const [message, setMessage] = useState(''); 
   const [messages, setMessages] = useState<Message[]>([]);
-  const { username, setUsername } = useClient();
+  const { username } = useClient();
 
   const handleSendMessage = () => {
     if (message === '') return;
@@ -128,7 +128,8 @@ export const Side = () => {
       username: username,
       timestamp: new Date().toLocaleTimeString(),
     };
-
+    
+    // 應該要有一個 socket.emit 的動作 
     setMessages([...messages, newMessage]);
     setMessage('');
   }

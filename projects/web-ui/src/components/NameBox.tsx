@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import { useClient } from "../hooks/useClient";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 
 const styles = {
   overlay: css`
@@ -67,8 +67,16 @@ const styles = {
 
 const NameBox = () => {
   const nameRef = useRef<HTMLInputElement>(null);
-  const { username, setUsername } = useClient();
+  const { username, setUsername, setRoomId, connect, connected } = useClient();
 
+  useEffect(() => {
+    const path = window.location.pathname;
+    const roomId = path.split('/room/')[1];
+    if (roomId) {
+      setRoomId(roomId);
+    }
+  }, [setRoomId]);
+  
   return (
     <div css={[styles.overlay, { display: username && 'none'}]} id="overlay">
       <div css={styles.box}>
@@ -82,7 +90,12 @@ const NameBox = () => {
         <button
           css={styles.continueName}
           onClick={() => {
-            if (nameRef.current) setUsername(nameRef.current.value);
+            if (nameRef.current) {
+              setUsername(nameRef.current.value);
+              if (!connected && import.meta.env.VITE_ENDPOINT) {
+                connect(import.meta.env.VITE_ENDPOINT);
+              }
+            }
           }}
         >
           Continue
