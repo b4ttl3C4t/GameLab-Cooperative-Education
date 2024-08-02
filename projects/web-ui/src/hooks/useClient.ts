@@ -16,7 +16,7 @@ export const useClient = create<Client>((set) => ({
       transports: ["websocket"]
     });
     socket.once("connect", () => {
-      socket.emit("ping")
+      socket.emit("ping", "&&&&&")
     });
     socket.once("close", () => set({ connected: false }));
     socket.once("error", () => set({ connected: false }));

@@ -1,16 +1,26 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import cors from "cors";
 const PORT = Number(process.env.PORT || 3000);
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+    },
+});
 let rooms = {};
 let socketroom = {};
 let socketname = {};
 let micSocket = {};
 let videoSocket = {};
-io.on("connect", (client) => {
+app.use(cors());
+app.get("/data", (req, res) => res.json({ message: "test" }));
+server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server run at http://localhost:${PORT}`);
+});
+io.on("connection", (client) => {
     client.on("ping", () => {
         client.emit("pong", "connected!");
     });
@@ -71,9 +81,5 @@ io.on("connect", (client) => {
         delete socketroom[client.id];
         console.log("--------------------");
         console.log(rooms[socketroom[client.id]]);
-        //toDo: push socket.id out of rooms
     });
-});
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server run at http://localhost:${PORT}`);
 });

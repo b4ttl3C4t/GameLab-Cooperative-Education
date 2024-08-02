@@ -1,6 +1,9 @@
 import { css } from "@emotion/react";
 import { FaCommentAlt } from "react-icons/fa";
 import { FaUser } from "react-icons/fa6";
+import { MdSportsGolf } from "react-icons/md";
+import { useClient } from "../../hooks/useClient";
+import { useState } from "react";
 
 const styles = {
   tab: css`
@@ -102,7 +105,34 @@ const styles = {
   `,
 };
 
+interface Message {
+  id: number;
+  content: string;
+  username: string;
+  timestamp: string;
+}
+
+let nextMessageId = 0;
+
 export const Side = () => {
+  const [message, setMessage] = useState(''); 
+  const [messages, setMessages] = useState<Message[]>([]);
+  const { username, setUsername } = useClient();
+
+  const handleSendMessage = () => {
+    if (message === '') return;
+    
+    const newMessage = {
+      id: nextMessageId++,
+      content: message,
+      username: username,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+
+    setMessages([...messages, newMessage]);
+    setMessage('');
+  }
+
   return (
     <>
       <div css={styles.tab}>
@@ -115,17 +145,34 @@ export const Side = () => {
           Attendies
         </div>
       </div>
-      <div css={styles.chatBox} />
+      <div css={styles.chatBox}>
+        {messages.map(msg => (
+          <div key={msg.id} css={styles.message}>
+            <div className="info">
+              <span className="username">{msg.username}</span>
+              <span className="time">{msg.timestamp}</span>
+            </div>
+            <div className="content">{msg.content}</div>
+          </div>
+        ))}
+      </div>
       <div css={styles.chatInput}>
         <div css={{ width: "80%" }}>
           <input
             type="text"
             css={styles.inputBox}
             placeholder="Type chat here.."
+            value={message}
+            onChange={e => setMessage(e.target.value)}
           />
         </div>
         <div css={{ width: "20%", marginLeft: 20 }}>
-          <button css={styles.sendBtn}>Send</button>
+          <button 
+            css={styles.sendBtn}
+            onClick={handleSendMessage}
+          >
+            Send
+          </button>
         </div>
       </div>
     </>
