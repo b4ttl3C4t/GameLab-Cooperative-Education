@@ -1,4 +1,4 @@
-import { css } from "@emotion/react";
+﻿import { css } from "@emotion/react";
 import { FaCommentAlt } from "react-icons/fa";
 import { FaUser } from "react-icons/fa6";
 import { io, type Socket } from "socket.io-client";
@@ -82,6 +82,21 @@ const styles = {
       outline: none;
     }
   `,
+    stkBox: css`
+    margin-bottom: 15px;
+    margin-left: 10px;
+    margin-right: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    border: 2px solid;
+
+    border-color: #393e46;
+
+    position: relative;
+    top: -150px;
+    left: 0px;
+    z-index: 1;
+  `,
     sendBtn: css`
     height: 36px;
     padding: 5px 20px;
@@ -103,12 +118,33 @@ const styles = {
       outline: none;
     }
   `,
+    stkBtn: css`
+    height: 36px;
+    padding: 5px 10px;
+    border: none;
+    background-color: white;
+    color: var(--nicegreen);
+    font-weight: bold;
+    font-size: 0.85rem;
+    border-radius: 2px;
+    transition: background-color 0.5s;
+
+    &:hover {
+      cursor: pointer;
+      background-color: rgb(243, 243, 243);
+    }
+
+    &:focus {
+      outline: none;
+    }
+  `,
 };
 
 export const Side = () => {
     const { sendMessage, roomId, getSocket, myColor } = useClient();
     const textRef = useRef<HTMLInputElement>(null);
     let msgRef = useRef<HTMLDivElement>(null);
+    let stkBoxRef = useRef<HTMLDivElement>(null);
     let date_last = 0;
     function listen() {
         let socket = getSocket();
@@ -125,7 +161,7 @@ export const Side = () => {
                 else if (min < 10) str_min = "0" + min;
                 else str_min = min;
                 msgRef.current!.innerHTML +=
-                `<p>
+                    `<p>
                     <div className="info">
                     <span style="font-size:16px;">
                         <span style="font-weight:bold;"><span style="color:${msgColor}">${username}</span><span style="font-size:4px;"> </span>:</span>
@@ -154,16 +190,21 @@ export const Side = () => {
                 </div>
             </div>
             <div css={styles.chatBox} >
-                <div ref={msgRef} css={styles.message}/>
+                <div ref={msgRef} css={styles.message} />
             </div>
             <div css={styles.chatInput}>
-                <div css={{ width: "80%" }}>
+                <div css={{ width: "70%" }}>
                     <input
                         type="text"
                         css={styles.inputBox}
                         placeholder="Type chat here.."
                         ref={textRef}
                     />
+                </div>
+                <div css={{ width: "10%", marginLeft: 5 }}>
+                    <button css={styles.stkBtn} onClick={() => {
+                        stkBoxRef.current?.hidden ? stkBoxRef.current!.hidden = false : stkBoxRef.current!.hidden = true;
+                    }}>😀</button>
                 </div>
                 <div css={{ width: "20%", marginLeft: 20 }}>
                     <button css={styles.sendBtn} onClick={() => {
@@ -173,6 +214,11 @@ export const Side = () => {
                         }
                     }}>Send</button>
                 </div>
+            </div>
+            <div ref={stkBoxRef} css={styles.stkBox} >
+                <button css={styles.stkBtn} onClick={() => {
+                    styles.chatBox = css`height: 8vh;`;
+                }}>😀</button>
             </div>
         </>
     );
