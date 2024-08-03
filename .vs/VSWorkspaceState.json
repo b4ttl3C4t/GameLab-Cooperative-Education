@@ -3,14 +3,15 @@
     "",
     "\\projects",
     "\\projects\\web-server",
-    "\\projects\\web-server\\dist",
     "\\projects\\web-server\\src",
     "\\projects\\web-ui",
     "\\projects\\web-ui\\public",
     "\\projects\\web-ui\\src",
+    "\\projects\\web-ui\\src\\assets",
     "\\projects\\web-ui\\src\\components",
-    "\\projects\\web-ui\\src\\components\\Conference"
+    "\\projects\\web-ui\\src\\components\\Conference",
+    "\\projects\\web-ui\\src\\hooks"
   ],
-  "SelectedNode": "\\projects\\web-ui\\src\\components\\Conference\\Tool.tsx",
+  "SelectedNode": "\\projects\\web-ui\\src\\components\\VideoContent.tsx",
   "PreviewInSolutionExplorer": false
 }

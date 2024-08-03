@@ -4,6 +4,7 @@ import { FaUser } from "react-icons/fa6";
 import { io, type Socket } from "socket.io-client";
 import { useClient } from "../../hooks/useClient";
 import { useRef } from "react";
+import stickers from './stickers';
 
 const styles = {
     tab: css`
@@ -86,16 +87,52 @@ const styles = {
     margin-bottom: 15px;
     margin-left: 10px;
     margin-right: 20px;
+    height: 16vh;
     background-color: #ffffff;
     border-radius: 5px;
     border: 2px solid;
-
     border-color: #393e46;
-
+    
     position: relative;
-    top: -150px;
+    top: -24vh;
     left: 0px;
     z-index: 1;
+    overflow-y: scroll;
+    ::-webkit-scrollbar {
+
+      width: 7px;
+
+    }
+
+    ::-webkit-scrollbar-button {
+
+      background: transparent;
+
+      border-radius: 4px;
+
+    }
+
+    ::-webkit-scrollbar-track-piece {
+
+      background: transparent;
+
+    }
+
+    ::-webkit-scrollbar-thumb {
+
+      border-radius: 4px;
+
+      background-color: rgba(0, 0, 0, 0.4);
+
+      border: 1px solid slategrey;
+
+    }
+
+    ::-webkit-scrollbar-track {
+
+      box-shadow: transparent;
+
+    }
   `,
     sendBtn: css`
     height: 36px;
@@ -118,7 +155,7 @@ const styles = {
       outline: none;
     }
   `,
-    stkBtn: css`
+    stkOpn: css`
     height: 36px;
     padding: 5px 10px;
     border: none;
@@ -138,6 +175,28 @@ const styles = {
       outline: none;
     }
   `,
+    stkBtn: css`
+    height: 68px;
+    padding: 4px 4px;
+    border: none;
+    background-color: white;
+    border-radius: 2px;
+    transition: background-color 0.5s;
+
+    &:hover {
+      cursor: pointer;
+      background-color: rgb(243, 243, 243);
+    }
+
+    &:focus {
+      outline: none;
+    }
+  `,
+    stk: css`
+    height: 60px;
+    width: 60px;
+    object-fit: cover;
+    `
 };
 
 export const Side = () => {
@@ -202,7 +261,7 @@ export const Side = () => {
                     />
                 </div>
                 <div css={{ width: "10%", marginLeft: 5 }}>
-                    <button css={styles.stkBtn} onClick={() => {
+                    <button css={styles.stkOpn} onClick={() => {
                         stkBoxRef.current?.hidden ? stkBoxRef.current!.hidden = false : stkBoxRef.current!.hidden = true;
                     }}>😀</button>
                 </div>
@@ -215,10 +274,20 @@ export const Side = () => {
                     }}>Send</button>
                 </div>
             </div>
-            <div ref={stkBoxRef} css={styles.stkBox} >
-                <button css={styles.stkBtn} onClick={() => {
-                    styles.chatBox = css`height: 8vh;`;
-                }}>😀</button>
+            <div ref={stkBoxRef} css={styles.stkBox} hidden>
+
+                {stickers &&
+                    stickers.map((r) => (
+                        <button css={styles.stkBtn} onClick={() => {
+                            styles.chatBox = css`height: 8vh;`;
+                        }}>
+                            <div key={r.id}>
+                                <img src={r.image} css={styles.stk} />
+                            </div>
+                        </button>
+                    ))}
+                {/*<img src={sticker0} css={styles.stk } />*/}
+
             </div>
         </>
     );
