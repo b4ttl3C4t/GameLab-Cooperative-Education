@@ -1,4 +1,7 @@
 node_modules
 node_modules/
 /projects/web-server/node_modules
+/projects/web-server/node_modules/
+projects/web-server/node_modules
+projects/web-server/node_modules/
 .vs/
