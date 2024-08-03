@@ -27,7 +27,7 @@ export const useClient = create<Client>((set, get) => ({
       set({ connected: true })
 
       const { username, roomId } = get();
-      socket.emit("join room", { username: username, room: roomId });
+      socket.emit("join room", roomId, username);
     });
     socket.once("close", () => set({ connected: false }));
     socket.once("error", () => set({ connected: false }));
