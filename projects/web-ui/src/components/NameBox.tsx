@@ -1,5 +1,6 @@
 import { css } from "@emotion/react";
 import { useClient } from "../hooks/useClient";
+import socketService from "../hooks/socketService";
 import { useRef } from "react";
 
 const styles = {
@@ -82,7 +83,9 @@ const NameBox = () => {
         <button
           css={styles.continueName}
           onClick={() => {
-            if (nameRef.current) setUsername(nameRef.current.value);
+            if (nameRef.current) {setUsername(nameRef.current.value);
+            //need to move later
+            socketService.getSocket()?.emit("join room", "test", nameRef.current.value);}
           }}
         >
           Continue

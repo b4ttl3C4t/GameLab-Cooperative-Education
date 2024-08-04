@@ -133,6 +133,16 @@ export const Side = () => {
     setMessage('');
   }
 
+  const handleReceiveMessage = (msg, sender, date) =>{
+    const newMessage:Message = {
+      id: nextMessageId++,
+      content: msg,
+      username: sender,
+      timestamp: new Date(date).toLocaleTimeString(),
+    };
+    setMessages([...messages, newMessage]);
+  }
+  socketService.getSocket()?.on("message", handleReceiveMessage)
   return (
     <>
       <div css={styles.tab}>

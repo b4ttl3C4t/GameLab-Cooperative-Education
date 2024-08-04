@@ -25,7 +25,6 @@ io.on("connection", (client) => {
         client.emit("pong", "connected!");
     });
     client.on("join room", (roomid, username) => {
-        console.log("join room", roomid, username);
         client.join(roomid);
         socketroom[client.id] = roomid;
         socketname[client.id] = username;
@@ -67,8 +66,7 @@ io.on("connection", (client) => {
         client.to(sid).emit("new icecandidate", candidate, client.id);
     });
     client.on("message", (msg, username, roomid) => {
-        console.log("message", msg, username, roomid);
-        io.to(roomid).emit("message", msg, username, Date.now());
+        client.to(roomid).emit("message", msg, username, Date.now());
     });
     client.on("disconnect", () => {
         if (!socketroom[client.id])
