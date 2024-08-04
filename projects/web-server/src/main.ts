@@ -88,7 +88,7 @@ io.on("connection", (client) => {
   });
 
   client.on("message", (msg, username, roomid) => {
-    io.to(roomid).emit("message", msg, username, Date.now());
+    client.to(roomid).emit("message", msg, username, Date.now());
   });
 
   client.on("disconnect", () => {
