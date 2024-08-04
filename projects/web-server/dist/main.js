@@ -30,23 +30,16 @@ io.on("connection", (client) => {
         socketname[client.id] = username;
         micSocket[client.id] = "on";
         videoSocket[client.id] = "on";
-        
-        console.log(`Room ID: ${roomid}`);
-        console.log(`Username: ${username}`);
-        console.log(`Client ID: ${client.id}`);
-        console.log(`Rooms before joining: ${JSON.stringify(rooms)}`);
-    
         if (rooms[roomid] && rooms[roomid].length > 0) {
             rooms[roomid].push(client.id);
-            client.to(roomid).emit("message", `${username} joined the room.`, "Bot", Date.now());
+            client
+                .to(roomid)
+                .emit("message", `${username} joined the room.`, "Bot", Date.now());
             io.to(client.id).emit("join room", rooms[roomid].filter((pid) => pid != client.id), socketname, micSocket, videoSocket);
         } else {
             rooms[roomid] = [client.id];
             io.to(client.id).emit("join room", null, null, null, null);
         }
-        
-        console.log(`Rooms after joining: ${JSON.stringify(rooms)}`);
-        
         io.to(roomid).emit("user count", rooms[roomid].length);
     });
     client.on("action", (msg) => {

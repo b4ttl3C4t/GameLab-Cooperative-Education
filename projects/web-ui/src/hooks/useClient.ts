@@ -1,6 +1,5 @@
 import { create } from "zustand";
-import { io, type Socket } from "socket.io-client";
-import { ClientRequest, get } from "http";
+import { io, Socket } from "socket.io-client";
 
 interface Client {
   username: string;
@@ -8,6 +7,7 @@ interface Client {
   connected: boolean;
   setUsername: (string) => void;
   setRoomId: (string) => void;
+  getRoomId: () => string;
   connect: (url: string) => Promise<Socket>;
 }
 
@@ -18,6 +18,7 @@ export const useClient = create<Client>((set, get) => ({
 
   setUsername: (username: string) => set({ username }),
   setRoomId: (roomId: string) => set({ roomId }),
+  getRoomId: () => { return get().roomId },
   connect: async (url: string) => {
     const socket = io(url, {
       transports: ["websocket"]

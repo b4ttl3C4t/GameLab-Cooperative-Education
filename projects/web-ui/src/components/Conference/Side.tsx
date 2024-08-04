@@ -1,9 +1,16 @@
 import { css } from "@emotion/react";
 import { FaCommentAlt } from "react-icons/fa";
 import { FaUser } from "react-icons/fa6";
-import { MdSportsGolf } from "react-icons/md";
 import { useClient } from "../../hooks/useClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import io from "socket.io-client";
+
+interface Message {
+  id: number;
+  content: string;
+  username: string;
+  timestamp: string;
+}
 
 const styles = {
   tab: css`
@@ -105,33 +112,41 @@ const styles = {
   `,
 };
 
-interface Message {
-  id: number;
-  content: string;
-  username: string;
-  timestamp: string;
-}
-
 let nextMessageId = 0;
+const socket = io(import.meta.env.VITE_ENDPOINT);
 
 export const Side = () => {
   const [message, setMessage] = useState(''); 
   const [messages, setMessages] = useState<Message[]>([]);
-  const { username } = useClient();
+  const { username, getRoomId } = useClient();
+
+  useEffect(() => {
+    function handleMessage(msg: string, username: string, timestamp: number) {
+      const newMessage = {
+        id: nextMessageId++,
+        content: msg,
+        username: username,
+        timestamp: new Date(timestamp).toLocaleTimeString(),
+      };
+
+      alert("It's working!");
+
+      setMessages([...messages, newMessage]);
+      setMessage('');
+    };
+    
+    // Client 有接收到 message 的事件，但是並沒有觸發 handleMessage
+    socket.on("message", handleMessage);
+
+    return () => {
+      socket.off("message", handleMessage);
+    };
+  }, []);
 
   const handleSendMessage = () => {
     if (message === '') return;
-    
-    const newMessage = {
-      id: nextMessageId++,
-      content: message,
-      username: username,
-      timestamp: new Date().toLocaleTimeString(),
-    };
-    
-    // 應該要有一個 socket.emit 的動作 
-    setMessages([...messages, newMessage]);
-    setMessage('');
+
+    socket.emit("message", message, username, getRoomId());
   }
 
   return (
