@@ -113,40 +113,37 @@ const styles = {
 };
 
 let nextMessageId = 0;
-const socket = io(import.meta.env.VITE_ENDPOINT);
 
 export const Side = () => {
   const [message, setMessage] = useState(''); 
   const [messages, setMessages] = useState<Message[]>([]);
-  const { username, getRoomId } = useClient();
+  const { username, getRoomId, getSocket } = useClient();
+  const socket = getSocket();
 
   useEffect(() => {
-    function handleMessage(msg: string, username: string, timestamp: number) {
+    const handleMessage = (msg, username, timestamp) => {
       const newMessage = {
         id: nextMessageId++,
         content: msg,
         username: username,
         timestamp: new Date(timestamp).toLocaleTimeString(),
       };
-
-      alert("It's working!");
-
-      setMessages([...messages, newMessage]);
-      setMessage('');
+    
+      setMessages(prevMessages => [...prevMessages, newMessage]);
     };
     
-    // Client 有接收到 message 的事件，但是並沒有觸發 handleMessage
     socket.on("message", handleMessage);
-
+  
     return () => {
       socket.off("message", handleMessage);
     };
-  }, []);
-
+  }, [socket]);
+  
   const handleSendMessage = () => {
     if (message === '') return;
-
+    
     socket.emit("message", message, username, getRoomId());
+    setMessage('');
   }
 
   return (
