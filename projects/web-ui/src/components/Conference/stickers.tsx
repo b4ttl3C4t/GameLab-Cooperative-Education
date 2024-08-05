@@ -56,8 +56,24 @@ const stickers = [
         image: '/img/stickers/shake_head.gif',
     },
     {
-        id: 15,
+        id: 14,
         image: '/img/stickers/camellia.jpg',
+    },
+    {
+        id: 15,
+        image: '/img/stickers/poyo.jpg',
+    },
+    {
+        id: 16,
+        image: '/img/stickers/wonderhoi.jpg',
+    },
+    {
+        id: 17,
+        image: '/img/stickers/iwin.jpg',
+    },
+    {
+        id: 18,
+        image: '/img/stickers/=D.jpg',
     },
 ]
 export default stickers
