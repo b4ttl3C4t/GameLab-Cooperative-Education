@@ -21,15 +21,15 @@ const styles = {
     border-bottom: 2px solid var(--black);
 
     & > .chats,
-    & > .attendies {
+    & > .attendees {
       padding: 10px;
       padding-top: 20px;
-      width: 100%;
+      width: 50%;
       text-align: center;
       transition: background-color 0.5s;
 
       &:hover {
-        background-color: #f8f8f8;
+        background-color: #bbbbbb;
         cursor: pointer;
       }
     }
@@ -142,6 +142,7 @@ export const Side = () => {
   const [message, setMessage] = useState(''); 
   const [messages, setMessages] = useState<Message[]>([]);
   const [attendees, setAttendees] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<"chats" | "attendees">("chats");
   const { username, getRoomId, getSocket } = useClient();
   const socket = getSocket();
 
@@ -181,15 +182,16 @@ export const Side = () => {
   return (
     <>
       <div css={styles.tab}>
-        <div className="chats">
+        <div className="chats" onClick={() => setActiveTab("chats")}>
           <FaCommentAlt />
           Chats
         </div>
-        <div className="attendees">
+        <div className="attendees" onClick={() => setActiveTab("attendees")}>
           <FaUser />
-          attendees
+          Attendees
         </div>
       </div>
+      {activeTab === "attendees" && (
       <div css={styles.attendeesBox}>
         {attendees.map((attendees) => (
           <div key={attendees} css={styles.attendee}>
@@ -199,39 +201,42 @@ export const Side = () => {
           </div>
         ))}
       </div>
-      {/* This is the chat box 
-      <div css={styles.chatBox}>
-        {messages.map(msg => (
-          <div key={msg.id} css={styles.message}>
-            <div className="info">
-              <span className="username">{msg.username}</span>
-              <span className="time">{msg.timestamp}</span>
-            </div>
-            <div className="content">{msg.content}</div>
+      )}
+      {activeTab === "chats" && (
+        <>
+          <div css={styles.chatBox}>
+            {messages.map(msg => (
+              <div key={msg.id} css={styles.message}>
+                <div className="info">
+                  <span className="username">{msg.username}</span>
+                  <span className="time">{msg.timestamp}</span>
+                </div>
+                <div className="content">{msg.content}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div css={styles.chatInput}>
-        <div css={{ width: "80%" }}>
-          <input
-            type="text"
-            css={styles.inputBox}
-            placeholder="Type chat here.."
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            onKeyPress={e => { if (e.key === "Enter") handleSendMessage(); }}
-          />
-        </div>
-        <div css={{ width: "20%", marginLeft: 20 }}>
-          <button 
-            css={styles.sendBtn}
-            onClick={handleSendMessage}
-          >
-            Send
-          </button>
-        </div>
-      </div>
-      */}
+          <div css={styles.chatInput}>
+            <div css={{ width: "80%" }}>
+              <input
+                type="text"
+                css={styles.inputBox}
+                placeholder="Type chat here.."
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                onKeyPress={e => { if (e.key === "Enter") handleSendMessage(); }}
+              />
+            </div>
+            <div css={{ width: "20%", marginLeft: 20 }}>
+              <button 
+                css={styles.sendBtn}
+                onClick={handleSendMessage}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 };
