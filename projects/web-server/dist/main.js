@@ -31,14 +31,14 @@ io.on("connection", (client) => {
         micSocket[client.id] = "on";
         videoSocket[client.id] = "on";
         if (rooms[roomid] && rooms[roomid].length > 0) {
-            rooms[roomid].push(client.id);
+            rooms[roomid].push({ id: client.id, username: username });
             client
                 .to(roomid)
                 .emit("message", `${username} joined the room.`, "Bot", Date.now());
-            io.to(client.id).emit("join room", rooms[roomid].filter((pid) => pid != client.id), socketname, micSocket, videoSocket);
+            io.to(client.id).emit("join room", rooms[roomid].filter((user) => user.id != client.id), socketname, micSocket, videoSocket);
         }
         else {
-            rooms[roomid] = [client.id];
+            rooms[roomid] = [{ id: client.id, username: username }];
             io.to(client.id).emit("join room", null, null, null, null);
         }
         io.to(roomid).emit("attendees", rooms[roomid]);

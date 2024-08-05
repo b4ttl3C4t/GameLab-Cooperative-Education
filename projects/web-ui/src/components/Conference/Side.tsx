@@ -157,8 +157,10 @@ export const Side = () => {
       setMessages(prevMessages => [...prevMessages, newMessage]);
     };
 
-    const handleAttendees = (attendees: string[]) => {
-      setAttendees(attendees);
+    const handleAttendees = (attendees) => {
+      setAttendees(attendees.map(function(attendee) {  
+        return attendee.username;
+      }));
     }
     
     socket.on("message", handleMessage);
