@@ -3,7 +3,6 @@ import { FaCommentAlt } from "react-icons/fa";
 import { FaUser } from "react-icons/fa6";
 import { useClient } from "../../hooks/useClient";
 import { useState, useEffect } from "react";
-import io from "socket.io-client";
 
 interface Message {
   id: number;
@@ -42,6 +41,13 @@ const styles = {
     padding-top: 10px;
     overflow-y: scroll;
   `,
+  attendeesBox: css`
+  background-color: #ffffff;
+  height: 84vh;
+  padding: 10px;
+  padding-top: 10px;
+  overflow-y: scroll;
+`,
   message: css`
     margin-bottom: 15px;
     margin-left: 10px;
@@ -67,6 +73,24 @@ const styles = {
     .content {
       margin-top: 5px;
       font-size: 0.9rem;
+    }
+  `,
+  attendee: css`
+    margin-bottom: 15px;
+    margin-left: 10px;
+    background-color: #ffffff;
+    border-radius: 2px;
+    word-break: break-all;
+    word-wrap: break-word;
+
+    .info {
+      display: flex;
+      font-size: 0.85rem;
+
+      .username {
+        font-weight: bold;
+        color: var(--nicegreen);
+      }
     }
   `,
   chatInput: css`
@@ -117,6 +141,7 @@ let nextMessageId = 0;
 export const Side = () => {
   const [message, setMessage] = useState(''); 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [attendees, setAttendees] = useState<string[]>([]);
   const { username, getRoomId, getSocket } = useClient();
   const socket = getSocket();
 
@@ -131,14 +156,20 @@ export const Side = () => {
     
       setMessages(prevMessages => [...prevMessages, newMessage]);
     };
+
+    const handleAttendees = (attendees: string[]) => {
+      const newAttendees = Object.values(attendees);
+      setAttendees(newAttendees)
+    }
     
     socket.on("message", handleMessage);
+    socket.on("attendees", handleAttendees);
   
     return () => {
       socket.off("message", handleMessage);
     };
   }, [socket]);
-  
+
   const handleSendMessage = () => {
     if (message === '') return;
     
@@ -153,11 +184,21 @@ export const Side = () => {
           <FaCommentAlt />
           Chats
         </div>
-        <div className="attendies">
+        <div className="attendees">
           <FaUser />
-          Attendies
+          attendees
         </div>
       </div>
+      <div css={styles.attendeesBox}>
+        {attendees.map((attendees) => (
+          <div key={attendees} css={styles.attendee}>
+            <div className="info">
+              <span className="username">{attendees}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* This is the chat box 
       <div css={styles.chatBox}>
         {messages.map(msg => (
           <div key={msg.id} css={styles.message}>
@@ -189,6 +230,7 @@ export const Side = () => {
           </button>
         </div>
       </div>
+      */}
     </>
   );
 };

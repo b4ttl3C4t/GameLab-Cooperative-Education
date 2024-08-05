@@ -41,7 +41,7 @@ io.on("connection", (client) => {
             rooms[roomid] = [client.id];
             io.to(client.id).emit("join room", null, null, null, null);
         }
-        io.to(roomid).emit("user count", rooms[roomid].length);
+        io.to(roomid).emit("attendees", socketname);
     });
     client.on("action", (msg) => {
         if (msg == "mute")
@@ -78,6 +78,10 @@ io.on("connection", (client) => {
         var index = rooms[socketroom[client.id]].indexOf(client.id);
         rooms[socketroom[client.id]].splice(index, 1);
         io.to(socketroom[client.id]).emit("user count", rooms[socketroom[client.id]].length);
+        delete socketname[client.id];
+        delete micSocket[client.id];
+        delete videoSocket[client.id];
+        io.to(socketroom[client.id]).emit("attendees",socketname);
         delete socketroom[client.id];
         console.log("--------------------");
         console.log(rooms[socketroom[client.id]]);
