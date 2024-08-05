@@ -158,8 +158,7 @@ export const Side = () => {
     };
 
     const handleAttendees = (attendees: string[]) => {
-      const newAttendees = Object.values(attendees);
-      setAttendees(newAttendees)
+      setAttendees(attendees);
     }
     
     socket.on("message", handleMessage);
