@@ -177,6 +177,7 @@ export const Side = () => {
             placeholder="Type chat here.."
             value={message}
             onChange={e => setMessage(e.target.value)}
+            onKeyPress={e => { if (e.key === "Enter") handleSendMessage(); }}
           />
         </div>
         <div css={{ width: "20%", marginLeft: 20 }}>

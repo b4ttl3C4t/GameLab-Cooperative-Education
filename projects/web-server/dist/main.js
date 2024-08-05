@@ -70,7 +70,6 @@ io.on("connection", (client) => {
     });
     client.on("message", (msg, username, roomid) => {
         io.to(roomid).emit("message", msg, username, Date.now());
-        console.log("Message sent:", msg, username, roomid);
     });
     client.on("disconnect", () => {
         if (!socketroom[client.id])
