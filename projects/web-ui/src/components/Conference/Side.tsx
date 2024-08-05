@@ -4,6 +4,8 @@ import { FaUser } from "react-icons/fa6";
 import { io, type Socket } from "socket.io-client";
 import { useClient } from "../../hooks/useClient";
 import { useRef } from "react";
+import { useState } from "react";
+import { useEffect } from "react";
 import stickers from './stickers';
 
 const styles = {
@@ -56,11 +58,23 @@ const styles = {
       .time {
         margin-left: 12px;
       }
+
+      .stk: {
+        height: 60px;
+        width: 60px;
+        object- fit: cover;
+      }
     }
 
     .content {
       margin-top: 5px;
       font-size: 0.9rem;
+    }
+
+    .stk: {
+    height: 60px;
+    width: 60px;
+    object- fit: cover;
     }
   `,
     chatInput: css`
@@ -196,46 +210,85 @@ const styles = {
     height: 60px;
     width: 60px;
     object-fit: cover;
-    `
+  `,
 };
 
+interface MessageContent {
+    text: string;
+    src: string;
+}
+interface Message {
+    id: number;
+    content: MessageContent[];
+    username: string;
+    timestamp: string;
+    color: string;
+}
+
+let nextMessageId = 0;
+
 export const Side = () => {
-    const { sendMessage, roomId, getSocket, myColor } = useClient();
     const textRef = useRef<HTMLInputElement>(null);
-    let msgRef = useRef<HTMLDivElement>(null);
     let stkBoxRef = useRef<HTMLDivElement>(null);
-    let date_last = 0;
-    function listen() {
-        let socket = getSocket();
-        socket.on("message", (msg, username, msgColor, date) => {
-            console.log("delta date:", date - date_last);
-            if (date - date_last > 1 && myColor != "hsl(0,0%,0%)") {
-                console.log(username + ":", msg, date);
-                let sec = date % (1000 * 60 * 60 * 24) / 1000;
-                let hr = Math.floor(sec / 3600 + 8);
-                if (hr > 24) hr -= 24;
-                let min = Math.floor(sec % 3600 / 60);
-                let str_min;
-                if (min == 0) str_min = "00";
-                else if (min < 10) str_min = "0" + min;
-                else str_min = min;
-                msgRef.current!.innerHTML +=
-                    `<p>
-                    <div className="info">
-                    <span style="font-size:16px;">
-                        <span style="font-weight:bold;"><span style="color:${msgColor}">${username}</span><span style="font-size:4px;"> </span>:</span>
-                        <span style="color:#050505;">${msg}</span>
-                    </span>
-                    <span style="color:#777777;font-size:11px;">
-                        ${hr}:${str_min}\n
-                    </span >
-                    </div>
-                </p>`;
-                date_last = date;
+    let [messages, setMessages] = useState<Message[]>([]);
+    const { sendMessage, getSocket } = useClient();
+    const socket = getSocket();
+
+    const handleSendMessage = (msg, username, msgColor, date) => {
+        if (msg === '') return;
+        let d = new Date(date);
+        let hr, min, sec, str_min: string, str_sec: string;
+        hr = d.getHours(); min = d.getMinutes(); sec = d.getSeconds();
+        if (min < 10)
+            str_min = "0" + min;
+        else
+            str_min = min;
+        if (sec < 10)
+            str_sec = "0" + sec;
+        else
+            str_sec = sec;
+        const time = `${hr}:${str_min}:${str_sec}`;
+        console.log(username + ":", msg, time, nextMessageId);
+
+        let words = msg.split(" ");
+        let contents: MessageContent[] = [{ text: "", src: "" }];
+        words.map((word: string) => {
+            let isStk = false;
+            let stkId;
+            console.log("len:", contents.length);
+            for (let i = 0; i < stickers.length; i++) {
+                if (":" + stickers[i].image.slice(14, -4) + ":" === word) {
+                    isStk = true;
+                    stkId = i;
+                    break
+                }
+            }
+            if (isStk) {
+                contents[contents.length - 1].text += " ";
+                contents.push({ text: "", src: stickers[stkId].image });
+            } else {
+                contents[contents.length-1].text += " " + word;
             }
         })
+
+        const newMessage = {
+            id: nextMessageId++,
+            content: contents,
+            username: username,
+            timestamp: time,
+            color: msgColor,
+        };
+
+        setMessages(prevMessages => {
+            const updatedMessages = [...prevMessages, newMessage];
+            return updatedMessages;
+        });
     }
-    listen();
+
+    useEffect(() => {
+        socket.on("message", handleSendMessage);
+    }, []);
+
     return (
         <>
             <div css={styles.tab}>
@@ -249,7 +302,20 @@ export const Side = () => {
                 </div>
             </div>
             <div css={styles.chatBox} >
-                <div ref={msgRef} css={styles.message} />
+                {messages.map(msg => (
+                    <div key={msg.id} css={styles.message}>
+                        <div className="info">
+                            <span className="username" style={{ color: msg.color }}>{msg.username}</span>
+                            <span className="time">{msg.timestamp}</span>
+                        </div>
+                        <div>{msg.content.map(content => (
+                            < >
+                                {content.src !== "" && <img css={styles.stk} src={content.src} />}
+                                {content.text !== "" && <s className="content" >{content.text}</s>}
+                            </>
+                        ))}</div>
+                    </div>
+                ))}
             </div>
             <div css={styles.chatInput}>
                 <div css={{ width: "70%" }}>
@@ -268,8 +334,8 @@ export const Side = () => {
                 <div css={{ width: "20%", marginLeft: 20 }}>
                     <button css={styles.sendBtn} onClick={() => {
                         if (textRef) {
-                            console.log(roomId);
                             sendMessage(textRef.current!.value);
+                            textRef.current!.value = "";
                         }
                     }}>Send</button>
                 </div>
@@ -279,9 +345,12 @@ export const Side = () => {
                 {stickers &&
                     stickers.map((r) => (
                         <button css={styles.stkBtn} onClick={() => {
-                            styles.chatBox = css`height: 8vh;`;
+                            if (!textRef.current!.value.endsWith(" ")) {
+                                textRef.current!.value += " ";
+                            }
+                            textRef.current!.value += ":" + r.image.slice(14, -4) + ": ";
                         }}>
-                            <div key={r.id}>
+                            <div >
                                 <img src={r.image} css={styles.stk} />
                             </div>
                         </button>

@@ -1,47 +1,63 @@
-const Images = [
+const stickers = [
     {
         id: 0,
-        image: '/img/stickers/sticker0.jpg',
+        image: '/img/stickers/oOoOo.jpg',
     },
     {
         id: 1,
-        image: '/img/stickers/sticker1.jpg',
+        image: '/img/stickers/thonk.jpg',
     },
     {
         id: 2,
-        image: '/img/stickers/sticker2.jpg',
+        image: '/img/stickers/stonks.jpg',
     },
     {
         id: 3,
-        image: '/img/stickers/sticker3.jpg',
+        image: '/img/stickers/sbs.jpg',
     },
     {
         id: 4,
-        image: '/img/stickers/sticker4.png',
+        image: '/img/stickers/sus.png',
     },
     {
         id: 5,
-        image: '/img/stickers/sticker5.gif',
+        image: '/img/stickers/stop_posting.gif',
     },
     {
         id: 6,
-        image: '/img/stickers/sticker6.png',
+        image: '/img/stickers/not,bro.png',
     },
     {
         id: 7,
-        image: '/img/stickers/sticker7.jpg',
+        image: '/img/stickers/finger.jpg',
     },
     {
         id: 8,
-        image: '/img/stickers/sticker8.jpg',
+        image: '/img/stickers/wisdom.jpg',
     },
     {
         id: 9,
-        image: '/img/stickers/sticker9.png',
+        image: '/img/stickers/loading.png',
     },
     {
         id: 10,
-        image: '/img/stickers/sticker10.gif',
+        image: '/img/stickers/disintegrate.gif',
+    },
+    {
+        id: 11,
+        image: '/img/stickers/objection.png',
+    },
+    {
+        id: 12,
+        image: '/img/stickers/vergil.gif',
+    },
+    {
+        id: 13,
+        image: '/img/stickers/shake_head.gif',
+    },
+    {
+        id: 15,
+        image: '/img/stickers/camellia.jpg',
     },
 ]
-export default Images
+export default stickers
