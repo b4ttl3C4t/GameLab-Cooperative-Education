@@ -2,7 +2,6 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-
 const PORT = Number(process.env.PORT || 3000);
 const app = express();
 const server = createServer(app);
@@ -11,19 +10,16 @@ const io = new Server(server, {
         origin: "*",
     },
 });
-
 let rooms = {};
 let socketroom = {};
 let socketname = {};
 let micSocket = {};
 let videoSocket = {};
-
 app.use(cors());
 app.get("/data", (req, res) => res.json({ message: "test" }));
 server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server run at http://localhost:${PORT}`);
 });
-
 io.on("connection", (client) => {
     client.on("ping", () => {
         client.emit("pong", "connected!");
@@ -40,7 +36,8 @@ io.on("connection", (client) => {
                 .to(roomid)
                 .emit("message", `${username} joined the room.`, "Bot", Date.now());
             io.to(client.id).emit("join room", rooms[roomid].filter((pid) => pid != client.id), socketname, micSocket, videoSocket);
-        } else {
+        }
+        else {
             rooms[roomid] = [client.id];
             io.to(client.id).emit("join room", null, null, null, null);
         }

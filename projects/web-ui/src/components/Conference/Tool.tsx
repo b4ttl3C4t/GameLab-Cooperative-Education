@@ -190,7 +190,10 @@ export const Tool = () => {
           <FaDesktop />
           <span className="tooltiptext">Share Screen</span>
         </div>
-        <div css={[styles.cutcall, styles.tooltip]}>
+        <div 
+          css={[styles.cutcall, styles.tooltip]}
+          onClick={ () => window.location.href = "/" }
+        >
           <FaPhoneSlash />
           <span className="tooltiptext">Leave Call</span>
         </div>
