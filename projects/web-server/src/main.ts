@@ -39,6 +39,7 @@ io.on("connection", (client) => {
 
     if (rooms[roomid] && rooms[roomid].length > 0) {
       rooms[roomid].push(client.id);
+      if(username !== "")
       client
         .to(roomid)
         .emit("message", `${username} joined the room.`, "Bot", Date.now());
@@ -93,6 +94,7 @@ io.on("connection", (client) => {
 
   client.on("disconnect", () => {
     if (!socketroom[client.id]) return;
+    if(socketname[client.id] !== "")
     client
       .to(socketroom[client.id])
       .emit(

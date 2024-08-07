@@ -1,6 +1,7 @@
 import { css } from "@emotion/react";
 import { FaCommentAlt } from "react-icons/fa";
 import { FaUser } from "react-icons/fa6";
+import { useState } from 'react';
 
 const styles = {
   tab: css`
@@ -102,7 +103,26 @@ const styles = {
   `,
 };
 
-export const Side = () => {
+type Message = {
+  username: string;
+  time: string;
+  content: string;
+};
+
+interface SideProps {
+  messages: Message[];
+  handleSend: (content: string) => void;
+}
+
+export const Side: React.FC<SideProps> = ({ messages, handleSend }) => {
+  const [inputValue, setInputValue] = useState<string>('');
+  
+  const onSend = () => {
+    if (inputValue.trim() === "") return;
+    handleSend(inputValue);
+    setInputValue(''); // 清空輸入框
+  };
+
   return (
     <>
       <div css={styles.tab}>
@@ -115,17 +135,29 @@ export const Side = () => {
           Attendies
         </div>
       </div>
-      <div css={styles.chatBox} />
+      <div css={styles.chatBox}>
+        {messages.map((message, index) => (
+          <div key={index} css={styles.message}>
+            <div className="info">
+              <span className="username">{message.username}</span>
+              <span className="time">{message.time}</span>
+            </div>
+            <div className="content">{message.content}</div>
+          </div>
+        ))}
+      </div>
       <div css={styles.chatInput}>
         <div css={{ width: "80%" }}>
           <input
             type="text"
             css={styles.inputBox}
             placeholder="Type chat here.."
+            value={inputValue}
+            onChange={e => setInputValue(e.target.value)}
           />
         </div>
         <div css={{ width: "20%", marginLeft: 20 }}>
-          <button css={styles.sendBtn}>Send</button>
+          <button css={styles.sendBtn} onClick={onSend}>Send</button>
         </div>
       </div>
     </>
