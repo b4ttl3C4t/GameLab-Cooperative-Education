@@ -1,7 +1,7 @@
+import React, { useState, KeyboardEvent } from 'react';
 import { css } from "@emotion/react";
 import { FaCommentAlt } from "react-icons/fa";
 import { FaUser } from "react-icons/fa6";
-import { useState } from 'react';
 
 const styles = {
   tab: css`
@@ -123,6 +123,14 @@ export const Side: React.FC<SideProps> = ({ messages, handleSend }) => {
     setInputValue(''); // 清空輸入框
   };
 
+  // 按下enter鍵後能傳送訊息
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault(); // 防止在多行輸入框中創建新行
+      onSend();
+    }
+  };
+
   return (
     <>
       <div css={styles.tab}>
@@ -154,6 +162,7 @@ export const Side: React.FC<SideProps> = ({ messages, handleSend }) => {
             placeholder="Type chat here.."
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
         <div css={{ width: "20%", marginLeft: 20 }}>
