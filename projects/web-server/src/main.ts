@@ -99,6 +99,11 @@ io.on("connection", (client) => {
         io.to(roomid).emit("message", msg, username, color, Date.now());
     });
 
+    client.on("image", (base64, username, roomid, color) => {
+        console.log("Recieve image from:", username, " room id:", roomid, " content:", base64, " color:", color);
+        io.to(roomid).emit("image", base64, username, color, Date.now());
+    })
+
     client.on("disconnect", () => {
         if (!socketroom[client.id]) return;
         client

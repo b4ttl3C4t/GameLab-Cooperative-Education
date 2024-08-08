@@ -82,7 +82,7 @@ const NameBox = () => {
           css={styles.continueName}
           onClick={() => {
               if (nameRef.current!.value) {
-                  setUsername(nameRef.current.value);
+                  setUsername(nameRef.current!.value);
                   let path = location.pathname.slice(6, 19);
                   roomId = path;
                   setRoomId(roomId);

@@ -28,13 +28,8 @@ interface Client {
     connect: () => Promise<Socket>;
     joinRoom: () => void;
     sendMessage: (message: string) => void;
+    sendImage: (base64: string) => void;
     sendAction: (message: string) => void;
-    setCandidate: () => void;
-    listenCandidate: () => Promise<void>;
-    sendOffer: () => Promise<void>;
-    listenOffer: () => Promise<void>;
-    sendAnswer: () => Promise<void>;
-    listenAnswer: () => Promise<void>;
     micOpened: ReturnType<typeof useDevice>["micOpened"];
     camOpened: ReturnType<typeof useDevice>["camOpened"];
     remoteMic: boolean;
@@ -42,6 +37,14 @@ interface Client {
     getRemoteCam: () => boolean;
     getRemoteMic: () => boolean;
     getSocket: () => Socket;
+
+    // private:
+    setCandidate: () => void;
+    listenCandidate: () => Promise<void>;
+    sendOffer: () => Promise<void>;
+    listenOffer: () => Promise<void>;
+    sendAnswer: () => Promise<void>;
+    listenAnswer: () => Promise<void>;
 }
 
 export const useClient = create<Client>((set, get) => ({
@@ -83,6 +86,11 @@ export const useClient = create<Client>((set, get) => ({
         const { username, roomId,  myColor } = get();
         console.log("message", message, username, roomId, myColor);
         socket.emit("message", message, username, roomId, myColor);
+    },
+    sendImage: async (base64: string) => {
+        const { username, roomId, myColor } = get();
+        console.log("image", base64, username, roomId, myColor);
+        socket.emit("image", base64, username, roomId, myColor);
     },
     sendAction: async (message: string) => {
         console.log("action", message);

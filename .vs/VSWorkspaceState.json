@@ -2,15 +2,15 @@
   "ExpandedNodes": [
     "",
     "\\projects",
+    "\\projects\\web-server",
+    "\\projects\\web-server\\src",
     "\\projects\\web-ui",
     "\\projects\\web-ui\\public",
     "\\projects\\web-ui\\public\\img",
-    "\\projects\\web-ui\\public\\img\\stickers",
+    "\\projects\\web-ui\\public\\img\\button",
     "\\projects\\web-ui\\src",
-    "\\projects\\web-ui\\src\\components",
-    "\\projects\\web-ui\\src\\components\\Conference",
-    "\\projects\\web-ui\\src\\hooks"
+    "\\projects\\web-ui\\src\\page"
   ],
-  "SelectedNode": "\\projects\\web-ui\\public\\img\\stickers\\camellia.jpg",
+  "SelectedNode": "\\projects\\web-server\\src\\main.ts",
   "PreviewInSolutionExplorer": false
 }

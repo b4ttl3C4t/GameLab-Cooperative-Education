@@ -8,6 +8,8 @@ import { useState } from "react";
 import { useEffect } from "react";
 import stickers from './stickers';
 
+const img_max_px = 540;
+
 const styles = {
     tab: css`
     font-weight: bold;
@@ -211,11 +213,35 @@ const styles = {
     width: 60px;
     object-fit: cover;
   `,
+    msgImg: css`
+    max-height: 270px;
+    width: 270px;
+    object-fit: scale-down
+  `,
+    imgInput: css`
+    height: 36px;
+    padding: 10px 10px;
+    border: none;
+    background-color: white;
+    border-radius: 2px;
+    transition: background-color 0.5s;
+
+    &:hover {
+      color: var(--blue);
+      cursor: pointer;
+      background-color: rgb(243, 243, 243);
+    }
+
+    &:focus {
+      outline: none;
+    }
+  `,
 };
 
 interface MessageContent {
     text: string;
-    src: string;
+    stk: string;
+    img: string;
 }
 interface Message {
     id: number;
@@ -231,10 +257,12 @@ export const Side = () => {
     const textRef = useRef<HTMLInputElement>(null);
     let stkBoxRef = useRef<HTMLDivElement>(null);
     let [messages, setMessages] = useState<Message[]>([]);
-    const { sendMessage, getSocket } = useClient();
+    const { getSocket, sendMessage, sendImage } = useClient();
     const socket = getSocket();
 
-    const handleSendMessage = (msg, username, msgColor, date) => {
+
+    const handleSendMessage = (msg, username, msgColor, date, type = "text") => {
+        console.log(type);
         if (msg === '') return;
         let d = new Date(date);
         let hr, min, sec, str_min: string, str_sec: string;
@@ -250,47 +278,97 @@ export const Side = () => {
         const time = `${hr}:${str_min}:${str_sec}`;
         console.log(username + ":", msg, time, nextMessageId);
 
-        let words = msg.split(" ");
-        let contents: MessageContent[] = [{ text: "", src: "" }];
-        words.map((word: string) => {
-            let isStk = false;
-            let stkId;
-            console.log("len:", contents.length);
-            for (let i = 0; i < stickers.length; i++) {
-                if (":" + stickers[i].image.slice(14, -4) + ":" === word) {
-                    isStk = true;
-                    stkId = i;
-                    break
+        if (type === "text") {
+            let words = msg.split(" ");
+            let contents: MessageContent[] = [{ text: "", stk: "", img:""}];
+            words.map((word: string) => {
+                let isStk = false;
+                let stkId;
+                console.log("len:", contents.length);
+                for (let i = 0; i < stickers.length; i++) {
+                    if (":" + stickers[i].image.split('/')[3].split('.')[0] + ":" === word) {
+                        isStk = true;
+                        stkId = i;
+                        break
+                    }
                 }
-            }
-            if (isStk) {
-                contents[contents.length - 1].text += " ";
-                contents.push({ text: "", src: stickers[stkId].image });
-            } else {
-                contents[contents.length-1].text += " " + word;
-            }
-        })
+                if (isStk) {
+                    contents[contents.length - 1].text += " ";
+                    contents.push({ text: "", stk: stickers[stkId].image, img:""});
+                } else {
+                    contents[contents.length - 1].text += " " + word;
+                }
+            })
 
-        const newMessage = {
-            id: nextMessageId++,
-            content: contents,
-            username: username,
-            timestamp: time,
-            color: msgColor,
-        };
+            const newMessage = {
+                id: nextMessageId++,
+                content: contents,
+                username: username,
+                timestamp: time,
+                color: msgColor,
+            };
 
-        setMessages(prevMessages => {
-            const updatedMessages = [...prevMessages, newMessage];
-            return updatedMessages;
-        });
+            setMessages(prevMessages => {
+                const updatedMessages = [...prevMessages, newMessage];
+                return updatedMessages;
+            });
+        } else if (type === "image") {
+            console.log("recieved image");
+            let contents: MessageContent[] = [{ text: "", stk: "", img: msg}];
+
+            const newMessage = {
+                id: nextMessageId++,
+                content: contents,
+                username: username,
+                timestamp: time,
+                color: msgColor,
+            };
+
+            setMessages(prevMessages => {
+                const updatedMessages = [...prevMessages, newMessage];
+                return updatedMessages;
+            });
+        }
     }
+    const uploadImg = (event) => {
+        const file = event.target.files![0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const result = e.target.result.toString();
+            if (result.split(";")[0].split("/")[0] === "data:image") {
+                let theCanva:HTMLImageElement = document.getElementById('theCanva');
+                theCanva.src = e.target.result.toString();
+                theCanva.onload = (e1) => {
+
+                    let canvas:HTMLCanvasElement = document.getElementById('canvas');
+                    let compressionRatio = Math.max(theCanva.naturalHeight / img_max_px, theCanva.naturalWidth / img_max_px);
+                    if (compressionRatio < 1) compressionRatio = 1;
+                    const drawer = canvas.getContext("2d");
+                    canvas.width = theCanva.naturalWidth / compressionRatio;
+                    canvas.height = theCanva.naturalHeight / compressionRatio;
+                    drawer.drawImage(theCanva, 0, 0, theCanva.naturalWidth / compressionRatio, theCanva.naturalHeight / compressionRatio);
+                    sendImage(canvas.toDataURL());
+                    canvas.clearRect();
+                }
+            } else {
+                console.error("Not an Image.", result.split(";")[0]);
+            }
+        };
+        reader.readAsDataURL(file);
+
+    };
 
     useEffect(() => {
         socket.on("message", handleSendMessage);
+        socket.on("image", (msg, username, msgColor, date) => {
+            handleSendMessage(msg, username, msgColor, date, "image");
+        });
     }, []);
 
     return (
         <>
+            <img id="theCanva" src="" hidden/>
+            <canvas id="canvas" width="540px" height="540px" hidden></canvas>
             <div css={styles.tab}>
                 <div className="chats">
                     <FaCommentAlt />
@@ -310,15 +388,16 @@ export const Side = () => {
                         </div>
                         <div>{msg.content.map(content => (
                             < >
-                                {content.src !== "" && <img css={styles.stk} src={content.src} />}
+                                {content.stk !== "" && <img css={styles.stk} src={content.stk} />}
                                 {content.text !== "" && <s className="content" >{content.text}</s>}
+                                {content.img !== "" && <img css={styles.msgImg} src={content.img} />}
                             </>
                         ))}</div>
                     </div>
                 ))}
             </div>
             <div css={styles.chatInput}>
-                <div css={{ width: "70%" }}>
+                <div css={{ width: "60%" }}>
                     <input
                         type="text"
                         css={styles.inputBox}
@@ -326,12 +405,18 @@ export const Side = () => {
                         ref={textRef}
                     />
                 </div>
-                <div css={{ width: "10%", marginLeft: 5 }}>
+                <div css={{ marginLeft: 5, marginRight: 5 }}>
                     <button css={styles.stkOpn} onClick={() => {
                         stkBoxRef.current?.hidden ? stkBoxRef.current!.hidden = false : stkBoxRef.current!.hidden = true;
                     }}>😀</button>
                 </div>
-                <div css={{ width: "20%", marginLeft: 20 }}>
+                <label css={styles.imgInput} htmlFor="imgInput"><img src="/img/button/imgInput.png" css={{ height: "20px" }} /></label>
+                <input css={{ display: "none" }} type="file" id="imgInput" accept="image/*" onChange={(event) => {
+                    uploadImg(event);
+                    event.target.value = "";
+                }} />
+
+                <div css={{ marginLeft: 5 }}>
                     <button css={styles.sendBtn} onClick={() => {
                         if (textRef) {
                             sendMessage(textRef.current!.value);
@@ -348,7 +433,7 @@ export const Side = () => {
                             if (!textRef.current!.value.endsWith(" ")) {
                                 textRef.current!.value += " ";
                             }
-                            textRef.current!.value += ":" + r.image.slice(14, -4) + ": ";
+                            textRef.current!.value += ":" + r.image.split('/')[3].split('.')[0] + ": ";
                         }}>
                             <div >
                                 <img src={r.image} css={styles.stk} />
