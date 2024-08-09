@@ -236,6 +236,24 @@ const styles = {
       outline: none;
     }
   `,
+    addStk: css`
+    height: 60px;
+    width: 60px;
+    padding: 0px 0px;
+    border: none;
+    background-color: white;
+    border-radius: 2px;
+    transition: background-color 0.5s;
+
+    &:hover {
+      cursor: pointer;
+      background-color: rgb(243, 243, 243);
+    }
+
+    &:focus {
+      outline: none;
+    }
+  `,
 };
 
 interface MessageContent {
@@ -250,6 +268,10 @@ interface Message {
     timestamp: string;
     color: string;
 }
+interface cstStk {
+    name: string;
+    base64: string;
+}
 
 let nextMessageId = 0;
 
@@ -257,12 +279,11 @@ export const Side = () => {
     const textRef = useRef<HTMLInputElement>(null);
     let stkBoxRef = useRef<HTMLDivElement>(null);
     let [messages, setMessages] = useState<Message[]>([]);
-    const { getSocket, sendMessage, sendImage } = useClient();
+    let [myStks, setStks] = useState<cstStk[]>([]);
+    const { getSocket, sendMessage, sendImage, addStk } = useClient();
     const socket = getSocket();
 
-
     const handleSendMessage = (msg, username, msgColor, date, type = "text") => {
-        console.log(type);
         if (msg === '') return;
         let d = new Date(date);
         let hr, min, sec, str_min: string, str_sec: string;
@@ -276,27 +297,36 @@ export const Side = () => {
         else
             str_sec = sec;
         const time = `${hr}:${str_min}:${str_sec}`;
-        console.log(username + ":", msg, time, nextMessageId);
 
         if (type === "text") {
             let words = msg.split(" ");
-            let contents: MessageContent[] = [{ text: "", stk: "", img:""}];
+            let contents: MessageContent[] = [{ text: "", stk: "", img: "" }];
             words.map((word: string) => {
                 let isStk = false;
-                let stkId;
-                console.log("len:", contents.length);
+                let isCstStk = false;
                 for (let i = 0; i < stickers.length; i++) {
                     if (":" + stickers[i].image.split('/')[3].split('.')[0] + ":" === word) {
+                        contents[contents.length - 1].text += " ";
+                        contents.push({ text: "", stk: stickers[i].image, img: "" });
                         isStk = true;
-                        stkId = i;
                         break
                     }
                 }
-                if (isStk) {
-                    contents[contents.length - 1].text += " ";
-                    contents.push({ text: "", stk: stickers[stkId].image, img:""});
-                } else {
-                    contents[contents.length - 1].text += " " + word;
+                if (!isStk) {
+                    setStks(Stks => {
+                        for (let i = 0; i < Stks.length; i++) {
+                            if (":" + Stks[i].name + ":" === word) {
+                                contents[contents.length - 1].text += " ";
+                                contents.push({ text: "", stk: Stks[i].base64, img: "" });
+                                isCstStk = true;
+                                break
+                            }
+                        }
+                        if (!isCstStk) {
+                            contents[contents.length - 1].text += " " + word;
+                        }
+                        return Stks;
+                    });
                 }
             })
 
@@ -312,9 +342,9 @@ export const Side = () => {
                 const updatedMessages = [...prevMessages, newMessage];
                 return updatedMessages;
             });
+
         } else if (type === "image") {
-            console.log("recieved image");
-            let contents: MessageContent[] = [{ text: "", stk: "", img: msg}];
+            let contents: MessageContent[] = [{ text: "", stk: "", img: msg }];
 
             const newMessage = {
                 id: nextMessageId++,
@@ -330,25 +360,47 @@ export const Side = () => {
             });
         }
     }
-    const uploadImg = (event) => {
+    const uploadImg = (event, type = "img") => {
         const file = event.target.files![0];
+        const fileName:string = event.target.files![0].name;
         const reader = new FileReader();
         reader.onload = function (e) {
             const result = e.target.result.toString();
             if (result.split(";")[0].split("/")[0] === "data:image") {
-                let theCanva:HTMLImageElement = document.getElementById('theCanva');
+                let theCanva: HTMLImageElement = document.getElementById('theCanva');
                 theCanva.src = e.target.result.toString();
                 theCanva.onload = (e1) => {
-
-                    let canvas:HTMLCanvasElement = document.getElementById('canvas');
-                    let compressionRatio = Math.max(theCanva.naturalHeight / img_max_px, theCanva.naturalWidth / img_max_px);
-                    if (compressionRatio < 1) compressionRatio = 1;
-                    const drawer = canvas.getContext("2d");
-                    canvas.width = theCanva.naturalWidth / compressionRatio;
-                    canvas.height = theCanva.naturalHeight / compressionRatio;
-                    drawer.drawImage(theCanva, 0, 0, theCanva.naturalWidth / compressionRatio, theCanva.naturalHeight / compressionRatio);
-                    sendImage(canvas.toDataURL());
-                    canvas.clearRect();
+                    if (result.split(";")[0].split("/")[1] !== "gif") {
+                        let canvas: HTMLCanvasElement = document.getElementById('canvas');
+                        let compressionRatio = Math.max(theCanva.naturalHeight / img_max_px, theCanva.naturalWidth / img_max_px);
+                        if (compressionRatio < 1) compressionRatio = 1;
+                        const drawer = canvas.getContext("2d");
+                        canvas.width = theCanva.naturalWidth / compressionRatio;
+                        canvas.height = theCanva.naturalHeight / compressionRatio;
+                        drawer.drawImage(theCanva, 0, 0, theCanva.naturalWidth / compressionRatio, theCanva.naturalHeight / compressionRatio);
+                        if (type === "img") {
+                            sendImage(canvas.toDataURL());
+                        } else if (type === "stk") {
+                            if (fileName.split('.').length > 2 || fileName.split(' ').length > 1) {
+                                console.error("請避免空格以及句點在檔名中");
+                            } else {
+                                addStk(fileName, canvas.toDataURL());
+                            }
+                        }
+                        //canvas.clearRect();
+                    } else if (result.length < 2000000) {
+                        if (type === "img") {
+                            sendImage(result);
+                        } else if (type === "stk") {
+                            if (fileName.split('.').length > 2 || fileName.split(' ').length > 1) {
+                                console.error("請避免空格以及句點在檔名中");
+                            } else {
+                                addStk(fileName, result);
+                            }
+                        }
+                    } else {
+                        console.error("The gif is too big.");
+                    }
                 }
             } else {
                 console.error("Not an Image.", result.split(";")[0]);
@@ -363,11 +415,18 @@ export const Side = () => {
         socket.on("image", (msg, username, msgColor, date) => {
             handleSendMessage(msg, username, msgColor, date, "image");
         });
+        socket.on("newStk", (name, base64) => {
+            const newStks = { name: name, base64: base64 };
+            setStks(prevStks => {
+                const updatedStks = [...prevStks, newStks];
+                return updatedStks;
+            });
+        })
     }, []);
 
     return (
         <>
-            <img id="theCanva" src="" hidden/>
+            <img id="theCanva" src="" hidden />
             <canvas id="canvas" width="540px" height="540px" hidden></canvas>
             <div css={styles.tab}>
                 <div className="chats">
@@ -405,16 +464,16 @@ export const Side = () => {
                         ref={textRef}
                     />
                 </div>
-                <div css={{ marginLeft: 5, marginRight: 5 }}>
-                    <button css={styles.stkOpn} onClick={() => {
-                        stkBoxRef.current?.hidden ? stkBoxRef.current!.hidden = false : stkBoxRef.current!.hidden = true;
-                    }}>😀</button>
-                </div>
                 <label css={styles.imgInput} htmlFor="imgInput"><img src="/img/button/imgInput.png" css={{ height: "20px" }} /></label>
                 <input css={{ display: "none" }} type="file" id="imgInput" accept="image/*" onChange={(event) => {
                     uploadImg(event);
                     event.target.value = "";
                 }} />
+                <div css={{ marginLeft: 5, marginRight: 5 }}>
+                    <button css={styles.stkOpn} onClick={() => {
+                        stkBoxRef.current?.hidden ? stkBoxRef.current!.hidden = false : stkBoxRef.current!.hidden = true;
+                    }}>😀</button>
+                </div>
 
                 <div css={{ marginLeft: 5 }}>
                     <button css={styles.sendBtn} onClick={() => {
@@ -428,20 +487,38 @@ export const Side = () => {
             <div ref={stkBoxRef} css={styles.stkBox} hidden>
 
                 {stickers &&
-                    stickers.map((r) => (
+                    stickers.map((i) => (
                         <button css={styles.stkBtn} onClick={() => {
                             if (!textRef.current!.value.endsWith(" ")) {
                                 textRef.current!.value += " ";
                             }
-                            textRef.current!.value += ":" + r.image.split('/')[3].split('.')[0] + ": ";
+                            textRef.current!.value += ":" + i.image.split('/')[3].split('.')[0] + ": ";
                         }}>
                             <div >
-                                <img src={r.image} css={styles.stk} />
+                                <img src={i.image} css={styles.stk} />
                             </div>
                         </button>
                     ))}
-                {/*<img src={sticker0} css={styles.stk } />*/}
-
+                {myStks &&
+                    myStks.map((i) => (
+                        <button css={styles.stkBtn} onClick={() => {
+                            if (!textRef.current!.value.endsWith(" ")) {
+                                textRef.current!.value += " ";
+                            }
+                            textRef.current!.value += ":" + i.name + ": ";
+                        }}>
+                            <div >
+                                <img src={i.base64} css={styles.stk} />
+                            </div>
+                        </button>
+                    ))}
+                <button css={styles.stkBtn} >
+                    <label css={styles.addStk} htmlFor="addStk"><img src="/img/button/addStk.png" css={styles.stk} /></label>
+                    <input css={{ display: "none" }} type="file" id="addStk" accept="image/*" onChange={(event) => {
+                        uploadImg(event, "stk");
+                        event.target.value = "";
+                    }} />
+                </button>
             </div>
         </>
     );

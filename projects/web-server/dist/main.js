@@ -13,6 +13,7 @@ const io = new Server(server, {
 let rooms = {};
 let socketroom = {};
 let socketname = {};
+let stickers = {};
 let micSocket = {};
 let videoSocket = {};
 let myColor;
@@ -41,7 +42,12 @@ io.on("connection", (client) => {
             client
                 .broadcast.to(roomid)
                 .emit("newComing", "HI!");
-            io.to(client.id).emit("join room", rooms[roomid].filter((pid) => pid != client.id), socketname, micSocket, videoSocket);
+            io.to(client.id).emit("join room", rooms[roomid].filter((pid) => pid != client.id), socketname, micSocket, videoSocket, stickers);
+            if (stickers[roomid]) {
+                stickers[roomid].map((stk) => {
+                    io.to(roomid).emit("newStk", stk.name, stk.base64);
+                });
+            }
         }
         else {
             rooms[roomid] = [client.id];
@@ -77,8 +83,14 @@ io.on("connection", (client) => {
         io.to(roomid).emit("message", msg, username, color, Date.now());
     });
     client.on("image", (base64, username, roomid, color) => {
-        console.log("Recieve image from:", username, " room id:", roomid, " content:", base64, " color:", color);
+        console.log("Recieve image from:", username, " room id:", roomid, " color:", color);
         io.to(roomid).emit("image", base64, username, color, Date.now());
+    });
+    client.on("addStk", (name, base64, roomid) => {
+        if (!stickers[roomid])
+            stickers[roomid] = [];
+        stickers[roomid].push({ name: name, base64: base64 });
+        io.to(roomid).emit("newStk", name, base64);
     });
     client.on("disconnect", () => {
         if (!socketroom[client.id])

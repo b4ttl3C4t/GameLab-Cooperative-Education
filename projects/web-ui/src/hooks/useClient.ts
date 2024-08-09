@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { io, type Socket } from "socket.io-client";
 import { Stream } from "stream";
 import { useDevice } from "./useDevice";
+import stickers from "../components/Conference/stickers";
 
 const configuration = {
     iceServers: [
@@ -29,6 +30,7 @@ interface Client {
     joinRoom: () => void;
     sendMessage: (message: string) => void;
     sendImage: (base64: string) => void;
+    addStk: (name:string,base64: string) => void;
     sendAction: (message: string) => void;
     micOpened: ReturnType<typeof useDevice>["micOpened"];
     camOpened: ReturnType<typeof useDevice>["camOpened"];
@@ -84,16 +86,17 @@ export const useClient = create<Client>((set, get) => ({
     },
     sendMessage: async (message: string) => {
         const { username, roomId,  myColor } = get();
-        console.log("message", message, username, roomId, myColor);
         socket.emit("message", message, username, roomId, myColor);
     },
     sendImage: async (base64: string) => {
         const { username, roomId, myColor } = get();
-        console.log("image", base64, username, roomId, myColor);
         socket.emit("image", base64, username, roomId, myColor);
     },
+    addStk: async (name: string, base64: string) => {
+        const { roomId } = get();
+        socket.emit("addStk", name, base64, roomId);
+    },
     sendAction: async (message: string) => {
-        console.log("action", message);
         socket.emit("action", message);
     },
     joinRoom: async () => {
@@ -104,10 +107,9 @@ export const useClient = create<Client>((set, get) => ({
             micOpened ? socket.emit("action", "unmute") : socket.emit("action", "mute");
             camOpened ? socket.emit("action", "videoon") : socket.emit("action", "videooff");
             set({ myColor: `hsl(${Math.floor(Math.random() * 360)},${Math.floor(Math.random() * 50) + 50}%,${Math.floor(Math.random() * 60) + 20}%)` });
-            console.log("myColor:", myColor);
             set({ joined: true });
 
-            socket.on("join room", (people, socketname, micSocket, videoSocket) => {
+            socket.on("join room", (people, socketname, micSocket, videoSocket, stickers) => {
                 console.log("Entered the room", people, socketname, micSocket, videoSocket)
                 if (people) {
                     console.log(micSocket[people], videoSocket[people]);
@@ -121,7 +123,6 @@ export const useClient = create<Client>((set, get) => ({
             socket.on("newComing", hi => {
                 setCandidate();
                 sendOffer();
-                console.log(hi);
             })
             listenOffer();
             listenCandidate();
