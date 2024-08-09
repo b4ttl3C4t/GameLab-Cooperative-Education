@@ -2,16 +2,17 @@ import { css } from "@emotion/react";
 import { Video } from "./Video";
 import { Tool } from "./Tool";
 import { Side } from "./Side";
+import { PopUp } from "./PopUp";
 
 const styles = {
-  container: css`
+    container: css`
     margin: 0;
     top: 0;
     bottom: 0;
     display: flex;
     background-color: var(--white);
   `,
-  leftSide: css`
+    leftSide: css`
     width: 80%;
     background-color: var(--black);
     height: 100vh;
@@ -19,7 +20,7 @@ const styles = {
     text-align: center;
     position: relative;
   `,
-  rightSide: css`
+    rightSide: css`
     width: 30%;
     background-color: #ffffff;
     height: 100vh;
@@ -46,17 +47,19 @@ const styles = {
 };
 
 const Conference = () => {
-  return (
-    <div css={styles.container}>
-      <div css={styles.leftSide}>
-        <Video />
-        <Tool />
-      </div>
-      <div css={styles.rightSide}>
-        <Side />
-      </div>
-    </div>
-  );
+    return (
+        <div css={styles.container}>
+            <div css={styles.leftSide}>
+                
+                <Video />
+                <Tool />
+                <PopUp />
+            </div>
+            <div css={styles.rightSide}>
+                <Side />
+            </div>
+        </div>
+    );
 };
 
 export default Conference;

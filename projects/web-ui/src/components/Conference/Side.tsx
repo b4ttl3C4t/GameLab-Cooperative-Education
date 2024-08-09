@@ -2,11 +2,13 @@
 import { FaCommentAlt } from "react-icons/fa";
 import { FaUser } from "react-icons/fa6";
 import { io, type Socket } from "socket.io-client";
-import { useClient } from "../../hooks/useClient";
 import { useRef } from "react";
 import { useState } from "react";
 import { useEffect } from "react";
-import stickers from './stickers';
+
+import { useClient } from "../../hooks/useClient";
+import { usePopUp } from "../../hooks/usePopUp";
+import stickers from '../../hooks/stickers';
 
 const img_max_px = 540;
 
@@ -276,11 +278,12 @@ interface cstStk {
 let nextMessageId = 0;
 
 export const Side = () => {
+    const { getSocket, sendMessage, sendImage, addStk } = useClient();
+    const { setErrorMessage } = usePopUp();
     const textRef = useRef<HTMLInputElement>(null);
     let stkBoxRef = useRef<HTMLDivElement>(null);
     let [messages, setMessages] = useState<Message[]>([]);
     let [myStks, setStks] = useState<cstStk[]>([]);
-    const { getSocket, sendMessage, sendImage, addStk } = useClient();
     const socket = getSocket();
 
     const handleSendMessage = (msg, username, msgColor, date, type = "text") => {
@@ -382,7 +385,7 @@ export const Side = () => {
                             sendImage(canvas.toDataURL());
                         } else if (type === "stk") {
                             if (fileName.split('.').length > 2 || fileName.split(' ').length > 1) {
-                                console.error("請避免空格以及句點在檔名中");
+                                setErrorMessage("錯誤：請避免空格、冒號、以及句點在檔名中");
                             } else {
                                 addStk(fileName, canvas.toDataURL());
                             }
@@ -393,17 +396,17 @@ export const Side = () => {
                             sendImage(result);
                         } else if (type === "stk") {
                             if (fileName.split('.').length > 2 || fileName.split(' ').length > 1) {
-                                console.error("請避免空格以及句點在檔名中");
+                                setErrorMessage("錯誤：請避免空格、冒號、以及句點在檔名中");
                             } else {
                                 addStk(fileName, result);
                             }
                         }
                     } else {
-                        console.error("The gif is too big.");
+                        setErrorMessage("錯誤：gif過大，限制約為1.5MB以內");
                     }
                 }
             } else {
-                console.error("Not an Image.", result.split(";")[0]);
+                setErrorMessage("並非並非並非圖片");
             }
         };
         reader.readAsDataURL(file);
