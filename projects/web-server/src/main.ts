@@ -38,22 +38,22 @@ io.on("connection", (client) => {
     videoSocket[client.id] = "on";
 
     if (rooms[roomid] && rooms[roomid].length > 0) {
-      rooms[roomid].push(client.id);
+      rooms[roomid].push({ id: client.id, username: username });
       client
         .to(roomid)
         .emit("message", `${username} joined the room.`, "Bot", Date.now());
       io.to(client.id).emit(
         "join room",
-        rooms[roomid].filter((pid) => pid != client.id),
+        rooms[roomid].filter((user) => user.id != client.id),
         socketname,
         micSocket,
         videoSocket
       );
     } else {
-      rooms[roomid] = [client.id];
+      rooms[roomid] = [{ id: client.id, username: username }];
       io.to(client.id).emit("join room", null, null, null, null);
     }
-
+    io.to(roomid).emit("attendees", rooms[roomid]);
     io.to(roomid).emit("user count", rooms[roomid].length);
   });
 
@@ -107,6 +107,13 @@ io.on("connection", (client) => {
     io.to(socketroom[client.id]).emit(
       "user count",
       rooms[socketroom[client.id]].length
+    );
+    delete socketname[client.id];
+    delete micSocket[client.id];
+    delete videoSocket[client.id];
+    io.to(socketroom[client.id]).emit(
+      "attendees",
+      rooms[socketroom[client.id]]
     );
     delete socketroom[client.id];
     console.log("--------------------");

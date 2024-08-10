@@ -42,6 +42,7 @@ io.on("connection", (client) => {
             io.to(client.id).emit("join room", null, null, null, null);
         }
         io.to(roomid).emit("attendees", rooms[roomid]);
+        io.to(roomid).emit("user count", rooms[roomid].length);
     });
     client.on("action", (msg) => {
         if (msg == "mute")
@@ -81,7 +82,7 @@ io.on("connection", (client) => {
         delete socketname[client.id];
         delete micSocket[client.id];
         delete videoSocket[client.id];
-        io.to(socketroom[client.id]).emit("attendees",rooms[socketroom[client.id]]);
+        io.to(socketroom[client.id]).emit("attendees", rooms[socketroom[client.id]]);
         delete socketroom[client.id];
         console.log("--------------------");
         console.log(rooms[socketroom[client.id]]);
