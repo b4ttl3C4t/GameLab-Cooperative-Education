@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import { Video } from "./Video";
+import { VideoGrid } from "./Video";
 import { Tool } from "./Tool";
 import { Side } from "./Side";
 
@@ -49,7 +49,7 @@ const Conference = () => {
   return (
     <div css={styles.container}>
       <div css={styles.leftSide}>
-        <Video />
+        <VideoGrid />
         <Tool />
       </div>
       <div css={styles.rightSide}>

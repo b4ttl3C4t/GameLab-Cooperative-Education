@@ -5,7 +5,10 @@ import { useDevice } from "../../hooks/useDevice";
 import { useEffect, useRef } from "react";
 
 const styles = {
-  wrap: css`
+  container: css`
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-gap: 10px;
     height: 75vh;
   `,
   box: css`
@@ -71,22 +74,29 @@ export const Video = () => {
   }, [requestDevice, camActive, micActive]);
 
   return (
-    <div css={styles.wrap} id="vcont">
-      <div css={styles.box}>
-        <video
-          css={styles.frame}
-          ref={videoElement}
-          autoPlay
-          playsInline
-        ></video>
-        <div css={styles.nameTag}>{username} (You)</div>
-        <div css={styles.mute}>
-          {micActive ? <FaMicrophone /> : <FaMicrophoneSlash />}
-        </div>
-        {!camActive && <div css={styles.videoOff}>
-          Video Off
-        </div>}
+    <div css={styles.box}>
+      <video
+        css={styles.frame}
+        ref={videoElement}
+        autoPlay
+        playsInline
+      ></video>
+      <div css={styles.nameTag}>{username} (You)</div>
+      <div css={styles.mute}>
+        {micActive ? <FaMicrophone /> : <FaMicrophoneSlash />}
       </div>
+      {!camActive && <div css={styles.videoOff}>
+        Video Off
+      </div>}
+    </div>
+  );
+};
+
+export const VideoGrid = () => {
+  return (
+    <div css={styles.container}>
+      <Video />
+      <Video />
     </div>
   );
 };
