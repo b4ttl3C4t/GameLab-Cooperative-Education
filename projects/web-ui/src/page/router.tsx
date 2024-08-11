@@ -12,7 +12,7 @@ const AppRoutes: BrowserRoutes = createBrowserRouter([
     path: "/room/:id",
     loader: ({ params }) => {
       console.log(params.id);
-      return "";
+      return { id: params.id };
     },
     element: <MeetRoom />,
   },

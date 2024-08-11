@@ -68,10 +68,10 @@ const styles = {
 
 const NameBox = () => {
   const nameRef = useRef<HTMLInputElement>(null);
-  const { username, setUsername } = useClient();
+  const { username, setUsername, meetCode } = useClient();
 
   return (
-    <div css={[styles.overlay, { display: username && 'none'}]} id="overlay">
+    <div css={[styles.overlay, { display: username && 'none' }]} id="overlay">
       <div css={styles.box}>
         <div css={styles.head}>Enter Your Username</div>
         <input
@@ -83,9 +83,11 @@ const NameBox = () => {
         <button
           css={styles.continueName}
           onClick={() => {
-            if (nameRef.current) {setUsername(nameRef.current.value);
-            //need to move later
-            socketService.getSocket()?.emit("join room", "test", nameRef.current.value);}
+            if (nameRef.current && nameRef.current.value) {
+              setUsername(nameRef.current.value);
+              //maybe need to move later
+              socketService.getSocket()?.emit("join room", meetCode, nameRef.current.value);
+            }
           }}
         >
           Continue

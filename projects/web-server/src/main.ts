@@ -30,12 +30,21 @@ io.on("connection", (client) => {
     client.emit("pong", "connected!");
   });
 
-  client.on("join room", (roomid, username) => {
+  let attendees = (roomid: string) => {
+    let attendeesInfo = rooms[roomid].map((x) => ({
+      id: x,
+      username: socketname[x],
+    }))
+    io.to(roomid).emit("attendees", attendeesInfo);
+  }
+
+  client.on("join room", (roomid: string, username: string) => {
     client.join(roomid);
     socketroom[client.id] = roomid;
     socketname[client.id] = username;
     micSocket[client.id] = "on";
     videoSocket[client.id] = "on";
+
 
     if (rooms[roomid] && rooms[roomid].length > 0) {
       rooms[roomid].push(client.id);
@@ -55,6 +64,9 @@ io.on("connection", (client) => {
     }
 
     io.to(roomid).emit("user count", rooms[roomid].length);
+    // let attendees = rooms[roomid].map((x)=> socketname[x]);
+    // io.to(roomid).emit("attendees", attendees);
+    attendees(roomid);
   });
 
   client.on("action", (msg) => {
@@ -91,6 +103,38 @@ io.on("connection", (client) => {
     client.to(roomid).emit("message", msg, username, Date.now());
   });
 
+  /*client.on("meetDisconnect", () => {
+    if (!socketroom[client.id]) return;
+    client
+      .to(socketroom[client.id])
+      .emit(
+        "message",
+        `${socketname[client.id]} left the chat.`,
+        `Bot`,
+        Date.now()
+      );
+    client.to(socketroom[client.id]).emit("remove peer", client.id);
+    var index = rooms[socketroom[client.id]].indexOf(client.id);
+    rooms[socketroom[client.id]].splice(index, 1);
+    io.to(socketroom[client.id]).emit(
+      "user count",
+      rooms[socketroom[client.id]].length
+    );
+    let attendees = rooms[socketroom[client.id]].map((x)=> socketname[x]);
+    io.to(socketroom[client.id]).emit("attendees", attendees);
+    delete socketroom[client.id];
+    console.log("--------------------");
+    console.log(rooms[socketroom[client.id]]);
+  });*/
+
+  client.on("kick", (userID, meetCode) => {
+    if (rooms[meetCode].indexOf(userID) != -1) {
+      console.log("T");
+      io.to(userID).emit("kicked out");
+    }
+    console.log("F");
+  })
+
   client.on("disconnect", () => {
     if (!socketroom[client.id]) return;
     client
@@ -108,6 +152,9 @@ io.on("connection", (client) => {
       "user count",
       rooms[socketroom[client.id]].length
     );
+    // let attendees = rooms[socketroom[client.id]].map((x)=> socketname[x]);
+    // io.to(socketroom[client.id]).emit("attendees", attendees);
+    attendees(socketroom[client.id]);
     delete socketroom[client.id];
     console.log("--------------------");
     console.log(rooms[socketroom[client.id]]);

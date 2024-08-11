@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa6";
 import { useParams } from "react-router-dom";
 import { useDevice } from "../../hooks/useDevice";
+import socketService from "../../hooks/socketService";
 
 const styles = {
   utils: css`
@@ -170,7 +171,11 @@ export const Tool = () => {
   const copyState = useRef<HTMLButtonElement>(null);
   const { toggleCam, toggleMic, camOpened, micOpened } = useDevice();
   const { id } = useParams();
-
+  const quit = () =>{
+    socketService.getSocket()?.disconnect();
+    window.location.href = "/";
+  }
+  socketService.getSocket()?.on("kicked out", quit);
   return (
     <footer css={{ position: "relative" }}>
       <div css={styles.utils}>
@@ -190,7 +195,7 @@ export const Tool = () => {
           <FaDesktop />
           <span className="tooltiptext">Share Screen</span>
         </div>
-        <div css={[styles.cutcall, styles.tooltip]}>
+        <div css={[styles.cutcall, styles.tooltip]} onClick={quit}>
           <FaPhoneSlash />
           <span className="tooltiptext">Leave Call</span>
         </div>

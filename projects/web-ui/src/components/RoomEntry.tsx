@@ -1,6 +1,7 @@
 import { css } from "@emotion/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useClient } from "../hooks/useClient";
 
 const styles = {
   createJoin: css`
@@ -97,7 +98,7 @@ const styles = {
 
 const RoomEntry = () => {
   const navigate = useNavigate();
-  const [meetCode, setMeetCode] = useState("");
+  const { meetCode, setMeetCode } = useClient();
   const isCodeError = useMemo(() => meetCode.trim() === "", [meetCode]);
 
   return (
@@ -106,7 +107,11 @@ const RoomEntry = () => {
         <div className="head">Create or Join Video Meetings</div>
       </div>
       <button
-        onClick={() => navigate(`/room/${Math.random().toString(16).slice(2)}`)}
+        onClick={() => {
+          let code = Math.random().toString(16).slice(2);
+          setMeetCode(code);
+          navigate(`/room/${code}`)
+        }}
         css={[styles.unselectable, styles.createBtn]}
       >
         Create Room
@@ -121,7 +126,7 @@ const RoomEntry = () => {
         css={[
           styles.roomCode,
           isCodeError &&
-            css`
+          css`
               border-bottom-color: #d31c1c !important;
             `,
         ]}

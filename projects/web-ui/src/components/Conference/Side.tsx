@@ -103,6 +103,34 @@ const styles = {
       outline: none;
     }
   `,
+  attendeesBox: css`
+  background-color: #ffffff;
+  height: 84vh;
+  padding: 10px;
+  padding-top: 10px;
+  overflow-y: scroll;
+  `,
+  attendee: css`
+    margin-bottom: 15px;
+    margin-left: 10px;
+    background-color: #ffffff;
+    border-radius: 2px;
+    word-break: break-all;
+    word-wrap: break-word;
+
+    .info {
+      font-size: 0.85rem;
+
+      .username {
+        font-weight: bold;
+        color: var(--nicegreen);
+      }
+      .id {
+        font-weight: bold;
+        color: var(--niceblue);
+      }
+    }
+  `,
 };
 
 interface Message {
@@ -112,29 +140,49 @@ interface Message {
   timestamp: string;
 }
 
+interface AttendeeInfo {
+  id: string;
+  username: string;
+}
+
 let nextMessageId = 0;
 
 export const Side = () => {
-  const [message, setMessage] = useState(''); 
+  const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
-  const {username} = useClient();
+  const [attendees, setAttendees] = useState<AttendeeInfo[]>([]);
+  const [activeTab, setActiveTab] = useState<"chats" | "attendees">("chats");
+  const { username, meetCode } = useClient();
 
+  const handleSendCMD = (cmd:string)=>{
+    let args = cmd.split(" ");
+    if(args[0] === "/kick"){
+      console.log(cmd);
+      socketService.getSocket()?.emit("kick", args[1], meetCode)
+    }
+    else{
+      console.log("This command does not exist:", cmd);
+    }
+  }
   const handleSendMessage = () => {
     if (message === '') return;
-    
-    const newMessage:Message = {
+
+    const newMessage: Message = {
       id: nextMessageId++,
       content: message,
       username: username,
       timestamp: new Date().toLocaleTimeString(),
     };
-    socketService.getSocket()?.emit("message", message, username, "test")
+    if (message[0] === '/') {
+      handleSendCMD(message);
+    }
+    else { socketService.getSocket()?.emit("message", message, username, meetCode) }
     setMessages([...messages, newMessage]);
     setMessage('');
   }
 
-  const handleReceiveMessage = (msg, sender, date) =>{
-    const newMessage:Message = {
+  const handleReceiveMessage = (msg, sender, date) => {
+    const newMessage: Message = {
       id: nextMessageId++,
       content: msg,
       username: sender,
@@ -142,49 +190,71 @@ export const Side = () => {
     };
     setMessages([...messages, newMessage]);
   }
-  socketService.getSocket()?.on("message", handleReceiveMessage)
+  const handleReceiveAttendees = (attendees) => {
+    setAttendees(attendees);
+  }
+  socketService.getSocket()?.on("message", handleReceiveMessage);
+  socketService.getSocket()?.on("attendees", handleReceiveAttendees)
+
   return (
     <>
       <div css={styles.tab}>
-        <div className="chats">
+        <div className="chats" onClick={() => setActiveTab("chats")}>
           <FaCommentAlt />
           Chats
         </div>
-        <div className="attendies">
+        <div className="attendies" onClick={() => setActiveTab("attendees")}>
           <FaUser />
           Attendies
         </div>
       </div>
-      <div css={styles.chatBox}>
-        {messages.map(msg => (
-          <div key={msg.id} css={styles.message}>
-            <div className="info">
-              <span className="username">{msg.username}</span>
-              <span className="time">{msg.timestamp}</span>
+      {activeTab === "attendees" && (
+        <div css={styles.attendeesBox}>
+          {attendees.map((attendees) => (
+            <div key={attendees.id} css={styles.attendee}>
+              <div className="info">
+                <span className="username">{attendees.username}</span>
+                <span>&nbsp;</span>
+                <span className="id">{attendees.id}</span>
+              </div>
             </div>
-            <div className="content">{msg.content}</div>
+          ))}
+        </div>
+      )}
+      {activeTab === "chats" && (
+        <>
+          <div css={styles.chatBox}>
+            {messages.map(msg => (
+              <div key={msg.id} css={styles.message}>
+                <div className="info">
+                  <span className="username">{msg.username}</span>
+                  <span className="time">{msg.timestamp}</span>
+                </div>
+                <div className="content">{msg.content}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div css={styles.chatInput}>
-        <div css={{ width: "80%" }}>
-          <input
-            type="text"
-            css={styles.inputBox}
-            placeholder="Type chat here.."
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-          />
-        </div>
-        <div css={{ width: "20%", marginLeft: 20 }}>
-          <button 
-            css={styles.sendBtn}
-            onClick={handleSendMessage}
-          >
-            Send
-          </button>
-        </div>
-      </div>
+          <div css={styles.chatInput}>
+            <div css={{ width: "80%" }}>
+              <input
+                type="text"
+                css={styles.inputBox}
+                placeholder="Type chat here.."
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+              />
+            </div>
+            <div css={{ width: "20%", marginLeft: 20 }}>
+              <button
+                css={styles.sendBtn}
+                onClick={handleSendMessage}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 };
