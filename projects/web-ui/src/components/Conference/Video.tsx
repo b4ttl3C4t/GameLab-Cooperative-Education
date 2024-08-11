@@ -55,24 +55,7 @@ const styles = {
   `,
 };
 
-export const Video = () => {
-  const videoElement = useRef<HTMLVideoElement>(null);
-  const { username } = useClient();
-  const { requestDevice, allowed, micOpened, camOpened } =
-    useDevice();
-
-  const camActive = allowed.cam && camOpened;
-  const micActive = allowed.mic && micOpened;
-  useEffect(() => {
-    if (videoElement.current) {
-      requestDevice().then((stream) => {
-        videoElement.current!.srcObject = stream;
-        if (!camActive) stream.getVideoTracks()[0].enabled = camActive;
-        if (!micActive) stream.getAudioTracks()[0].stop();
-      });
-    }
-  }, [requestDevice, camActive, micActive]);
-
+export const Video = ({ videoElement, username, micActive, camActive }) => {
   return (
     <div css={styles.box}>
       <video
@@ -93,10 +76,31 @@ export const Video = () => {
 };
 
 export const VideoGrid = () => {
+  const videoElement = useRef<HTMLVideoElement>(null);
+  const { username } = useClient();
+  const { requestDevice, allowed, micOpened, camOpened } =
+    useDevice();
+
+  const camActive = allowed.cam && camOpened;
+  const micActive = allowed.mic && micOpened;
+  useEffect(() => {
+    if (videoElement.current) {
+      requestDevice().then((stream) => {
+        videoElement.current!.srcObject = stream;
+        if (!camActive) stream.getVideoTracks()[0].enabled = camActive;
+        if (!micActive) stream.getAudioTracks()[0].stop();
+      });
+    }
+  }, [requestDevice, camActive, micActive]);
+
   return (
     <div css={styles.container}>
-      <Video />
-      <Video />
+      <Video 
+        videoElement={videoElement}
+        username={username}
+        camActive={camActive}
+        micActive={micActive}
+      />
     </div>
   );
 };
