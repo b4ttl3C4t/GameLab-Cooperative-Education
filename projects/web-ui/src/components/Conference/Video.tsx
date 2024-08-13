@@ -1,8 +1,7 @@
 import { css } from "@emotion/react";
+import { useEffect, useRef } from "react";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa6";
 import { useClient } from "../../hooks/useClient";
-import { useDevice } from "../../hooks/useDevice";
-import { useEffect, useRef } from "react";
 
 const styles = {
   container: css`
@@ -55,6 +54,52 @@ const styles = {
   `,
 };
 
+export const LocalStream = () => {
+  const { localStream, username } = useClient();
+  const videoElement = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoElement.current) {
+      videoElement.current.srcObject = localStream;
+    }
+  }, [localStream]);
+
+  return (
+    <div css={styles.box}>
+      <video
+        css={styles.frame}
+        ref={videoElement}
+        autoPlay
+        playsInline
+      ></video>
+      <div css={styles.nameTag}>{username}</div>
+    </div>
+  );
+}
+
+export const RemoteStream = () => {
+  const { remoteStream, username } = useClient();
+  const videoElement = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoElement.current) {
+      videoElement.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
+
+  return (
+    <div css={styles.box}>
+      <video
+        css={styles.frame}
+        ref={videoElement}
+        autoPlay
+        playsInline
+      ></video>
+      <div css={styles.nameTag}>{username}</div>
+    </div>
+  );
+}
+
 export const Video = ({ videoElement, username, micActive, camActive }) => {
   return (
     <div css={styles.box}>
@@ -76,31 +121,10 @@ export const Video = ({ videoElement, username, micActive, camActive }) => {
 };
 
 export const VideoGrid = () => {
-  const videoElement = useRef<HTMLVideoElement>(null);
-  const { username } = useClient();
-  const { requestDevice, allowed, micOpened, camOpened } =
-    useDevice();
-
-  const camActive = allowed.cam && camOpened;
-  const micActive = allowed.mic && micOpened;
-  useEffect(() => {
-    if (videoElement.current) {
-      requestDevice().then((stream) => {
-        videoElement.current!.srcObject = stream;
-        if (!camActive) stream.getVideoTracks()[0].enabled = camActive;
-        if (!micActive) stream.getAudioTracks()[0].stop();
-      });
-    }
-  }, [requestDevice, camActive, micActive]);
-
   return (
     <div css={styles.container}>
-      <Video 
-        videoElement={videoElement}
-        username={username}
-        camActive={camActive}
-        micActive={micActive}
-      />
+      <LocalStream />
+      <RemoteStream />
     </div>
   );
 };

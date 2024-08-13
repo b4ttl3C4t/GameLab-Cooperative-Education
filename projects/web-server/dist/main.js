@@ -24,25 +24,41 @@ io.on("connection", (client) => {
     client.on("ping", () => {
         client.emit("pong", "connected!");
     });
-    client.on("join room", (roomid, username) => {
+    client.on("join room", (roomid, username, micOpened, camOpened) => {
         client.join(roomid);
         socketroom[client.id] = roomid;
         socketname[client.id] = username;
-        micSocket[client.id] = "on";
-        videoSocket[client.id] = "on";
+        micSocket[client.id] = micOpened ? "on" : "off";
+        videoSocket[client.id] = camOpened ? "on" : "off";
         if (rooms[roomid] && rooms[roomid].length > 0) {
             rooms[roomid].push({ id: client.id, username: username });
             client
                 .to(roomid)
                 .emit("message", `${username} joined the room.`, "Bot", Date.now());
+            client
+                .to(roomid)
+                .emit("giveOffer", client.id);
             io.to(client.id).emit("join room", rooms[roomid].filter((user) => user.id != client.id), socketname, micSocket, videoSocket);
         }
         else {
             rooms[roomid] = [{ id: client.id, username: username }];
             io.to(client.id).emit("join room", null, null, null, null);
+            io.to(client.id).emit("createOffer");
         }
         io.to(roomid).emit("attendees", rooms[roomid]);
         io.to(roomid).emit("user count", rooms[roomid].length);
+    });
+    client.on("createOffer", () => {
+        io.to(client.id).emit("createAnswer");
+    });
+    client.on("createAnswer", (offer, socket) => {
+        io.to(client.id).emit("createAnswer", offer, socket);
+    });
+    client.on("giveAnswer", (offer, bid, aid) => {
+        io.to(bid).emit("createAnswer", offer, aid);
+    });
+    client.on("returnAnswer", (answer, bid) => {
+        io.to(bid).emit("setAnswer", answer);
     });
     client.on("action", (msg) => {
         if (msg == "mute")
