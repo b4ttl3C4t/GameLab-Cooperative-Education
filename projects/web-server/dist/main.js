@@ -45,7 +45,7 @@ io.on("connection", (client) => {
             io.to(client.id).emit("join room", rooms[roomid].filter((pid) => pid != client.id), socketname, micSocket, videoSocket, stickers);
             if (stickers[roomid]) {
                 stickers[roomid].map((stk) => {
-                    io.to(roomid).emit("newStk", stk.name, stk.base64);
+                    io.to(client.id).emit("newStk", stk.name, stk.base64);
                 });
             }
         }
@@ -91,6 +91,7 @@ io.on("connection", (client) => {
             stickers[roomid] = [];
         stickers[roomid].push({ name: name, base64: base64 });
         io.to(roomid).emit("newStk", name, base64);
+        console.log("new sticker");
     });
     client.on("disconnect", () => {
         if (!socketroom[client.id])

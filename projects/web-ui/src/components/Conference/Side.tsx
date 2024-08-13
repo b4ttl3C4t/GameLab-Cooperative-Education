@@ -7,8 +7,8 @@ import { useState } from "react";
 import { useEffect } from "react";
 
 import { useClient } from "../../hooks/useClient";
-import { usePopUp } from "../../hooks/usePopUp";
 import stickers from '../../hooks/stickers';
+import { useEventBus } from "../../hooks/useEventBus";
 
 const img_max_px = 540;
 
@@ -279,13 +279,13 @@ let nextMessageId = 0;
 
 export const Side = () => {
     const { getSocket, sendMessage, sendImage, addStk } = useClient();
-    const { setErrorMessage } = usePopUp();
     const textRef = useRef<HTMLInputElement>(null);
     let stkBoxRef = useRef<HTMLDivElement>(null);
     let [messages, setMessages] = useState<Message[]>([]);
     let [myStks, setStks] = useState<cstStk[]>([]);
     const socket = getSocket();
-
+    const { getEventBus } = useEventBus()
+    const eventBus = getEventBus();
     const handleSendMessage = (msg, username, msgColor, date, type = "text") => {
         if (msg === '') return;
         let d = new Date(date);
@@ -365,13 +365,13 @@ export const Side = () => {
     }
     const uploadImg = (event, type = "img") => {
         const file = event.target.files![0];
-        const fileName:string = event.target.files![0].name;
+        const fileName: string = event.target.files![0].name;
         const reader = new FileReader();
         reader.onload = function (e) {
             const result = e.target.result.toString();
             if (result.split(";")[0].split("/")[0] === "data:image") {
                 let theCanva: HTMLImageElement = document.getElementById('theCanva');
-                theCanva.src = e.target.result.toString();
+                theCanva.src = result;
                 theCanva.onload = (e1) => {
                     if (result.split(";")[0].split("/")[1] !== "gif") {
                         let canvas: HTMLCanvasElement = document.getElementById('canvas');
@@ -384,34 +384,56 @@ export const Side = () => {
                         if (type === "img") {
                             sendImage(canvas.toDataURL());
                         } else if (type === "stk") {
-                            if (fileName.split('.').length > 2 || fileName.split(' ').length > 1) {
-                                setErrorMessage("錯誤：請避免空格、冒號、以及句點在檔名中");
-                            } else {
-                                addStk(fileName, canvas.toDataURL());
-                            }
+                            let stickerNames=[];
+                            stickers.map((stkInfo) => {
+                                stickerNames.push(stkInfo.image.split('/')[3].split('.')[0]);
+                            })
+                            myStks.map((stkInfo => {
+                                stickerNames.push(stkInfo.name.split('.')[0]);
+                            }))
+                            eventBus.emit("editSticker", fileName, canvas.toDataURL(), stickerNames);
                         }
                         //canvas.clearRect();
                     } else if (result.length < 2000000) {
                         if (type === "img") {
                             sendImage(result);
                         } else if (type === "stk") {
-                            if (fileName.split('.').length > 2 || fileName.split(' ').length > 1) {
-                                setErrorMessage("錯誤：請避免空格、冒號、以及句點在檔名中");
-                            } else {
-                                addStk(fileName, result);
-                            }
+                            let stickerNames = [];
+                            stickers.map((stkInfo) => {
+                                stickerNames.push(stkInfo.image.split('/')[3].split('.')[0]);
+                            })
+                            myStks.map((stkInfo => {
+                                stickerNames.push(stkInfo.name.split('.')[0]);
+                            }))
+                            eventBus.emit("editSticker", fileName, result, stickerNames);
                         }
                     } else {
-                        setErrorMessage("錯誤：gif過大，限制約為1.5MB以內");
+                        eventBus.emit("errorMessage", "gif過大，限制約為1.5MB以內");
                     }
                 }
             } else {
-                setErrorMessage("並非並非並非圖片");
+                eventBus.emit("errorMessage", "錯誤：並非圖片");
             }
         };
         reader.readAsDataURL(file);
 
     };
+    const sendSticker = (fileName, x, y, sideLength, picWidth) => {
+        let theCanva: HTMLImageElement = document.getElementById('theCanva');
+        if (fileName.split('.')[1] !== 'gif') {
+            let canvas: HTMLCanvasElement = document.getElementById('canvas');
+            let compressionRatio = theCanva.naturalWidth / picWidth;
+            if (compressionRatio < 1) compressionRatio = 1;
+            const drawer = canvas.getContext("2d");
+            const canvasSL = sideLength * compressionRatio;
+            canvas.width = canvas.height = canvasSL;
+            console.log(x, y, compressionRatio, canvasSL);
+            drawer.drawImage(theCanva, x * compressionRatio, y * compressionRatio, canvasSL, canvasSL, 0, 0, canvas.width, canvas.height);
+            addStk(fileName.split('.')[0], canvas.toDataURL())
+        } else {
+            addStk(fileName.split('.')[0], theCanva.src);
+        }
+    }
 
     useEffect(() => {
         socket.on("message", handleSendMessage);
@@ -425,6 +447,7 @@ export const Side = () => {
                 return updatedStks;
             });
         })
+        eventBus.on("sendSticker", sendSticker)
     }, []);
 
     return (
@@ -465,6 +488,12 @@ export const Side = () => {
                         css={styles.inputBox}
                         placeholder="Type chat here.."
                         ref={textRef}
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter" && textRef) {
+                                sendMessage(textRef.current!.value);
+                                textRef.current!.value = "";
+                            }
+                        }}
                     />
                 </div>
                 <label css={styles.imgInput} htmlFor="imgInput"><img src="/img/button/imgInput.png" css={{ height: "20px" }} /></label>
