@@ -39,22 +39,23 @@ io.on("connection", (client) => {
 
     if (rooms[roomid] && rooms[roomid].length > 0) {
       rooms[roomid].push(client.id);
-      if(username !== "")
-      client
+      if(username !== ""){
+        client
         .to(roomid)
         .emit("message", `${username} joined the room.`, "Bot", Date.now());
       io.to(client.id).emit(
         "join room",
         rooms[roomid].filter((pid) => pid != client.id),
-        socketname,
+        socketname[client.id],
         micSocket,
         videoSocket
       );
+      }
     } else {
       rooms[roomid] = [client.id];
       io.to(client.id).emit("join room", null, null, null, null);
     }
-
+    io.to(roomid).emit("attendees", socketname);
     io.to(roomid).emit("user count", rooms[roomid].length);
   });
 
@@ -110,6 +111,8 @@ io.on("connection", (client) => {
       "user count",
       rooms[socketroom[client.id]].length
     );
+    delete socketname[client.id];
+    io.to(socketroom[client.id]).emit("attendees",socketname);
     delete socketroom[client.id];
     console.log("--------------------");
     console.log(rooms[socketroom[client.id]]);

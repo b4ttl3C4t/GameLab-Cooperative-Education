@@ -4,7 +4,7 @@ import { Tool } from "./Tool";
 import { Side } from "./Side";
 import { io, Socket } from "socket.io-client";
 import { useClient } from "../../hooks/useClient";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate} from "react-router-dom";
 import { useState, useEffect } from 'react';
 
 const styles = {
@@ -62,6 +62,8 @@ export const Conference = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   // 將資料類型設定為Socket跟null，使其能在連線後從初始化的null改為Socket
   const [messages, setMessages] = useState<Message[]>([]);
+  const [attendees, setAttendees] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const newSocket = io('http://localhost:3000');
@@ -76,6 +78,13 @@ export const Conference = () => {
       console.log(message);
       newSocket.emit('join room', id, username);
     });
+
+    const handleAttendees = (attendees: string[]) => {
+      const newAttendees = Object.values(attendees);
+      setAttendees(newAttendees)
+    }
+
+    newSocket.on("attendees", handleAttendees);
 
     newSocket.on('message', (content, sender, time) => {
       console.log(`Received message: ${content} from ${sender} in time ${time}`);
@@ -107,16 +116,24 @@ export const Conference = () => {
     }
   };
 
+  const leaveChat = () => {
+    if (socket) {
+      socket.disconnect();
+      navigate(`/`); // 回到主頁面
+    }
+  }
+
   return (
     <div css={styles.container}>
       <div css={styles.leftSide}>
         <Video />
-        <Tool />
+        <Tool leaveChat={leaveChat}/>
       </div>
       <div css={styles.rightSide}>
-        <Side messages={messages} handleSend={handleSend} />
+        <Side messages={messages} handleSend={handleSend} attendees={attendees}/>
       </div>
     </div>
+
   );
 };
 

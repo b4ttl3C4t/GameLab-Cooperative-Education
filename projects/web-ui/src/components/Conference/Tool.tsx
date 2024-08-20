@@ -166,7 +166,11 @@ const styles = {
   `,
 };
 
-export const Tool = () => {
+interface ToolProps {
+  leaveChat: () => void;
+}
+
+export const Tool: React.FC<ToolProps> = ({leaveChat}) => {
   const copyState = useRef<HTMLButtonElement>(null);
   const { toggleCam, toggleMic, camOpened, micOpened } = useDevice();
   const { id } = useParams();
@@ -175,22 +179,24 @@ export const Tool = () => {
     <footer css={{ position: "relative" }}>
       <div css={styles.utils}>
         <div
-          css={[styles.audio, !micOpened && styles.nodevice]}
+          css={[styles.audio, !micOpened && styles.nodevice, styles.tooltip]}
           onClick={toggleMic}
         >
           {micOpened ? <FaMicrophone /> : <FaMicrophoneSlash />}
+          <span className="tooltiptext">Close Microphone</span>
         </div>
         <div
-          css={[styles.noVideo, !camOpened && styles.nodevice]}
+          css={[styles.noVideo, !camOpened && styles.nodevice, styles.tooltip]}
           onClick={toggleCam}
         >
           {camOpened ? <FaVideo /> : <FaVideoSlash />}
+          <span className="tooltiptext">Close Camera</span>
         </div>
         <div css={[styles.screenShare, styles.tooltip]}>
           <FaDesktop />
           <span className="tooltiptext">Share Screen</span>
         </div>
-        <div css={[styles.cutcall, styles.tooltip]}>
+        <div css={[styles.cutcall, styles.tooltip]} onClick={leaveChat}>
           <FaPhoneSlash />
           <span className="tooltiptext">Leave Call</span>
         </div>

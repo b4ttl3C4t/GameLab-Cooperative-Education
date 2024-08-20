@@ -52,6 +52,17 @@ const styles = {
   `,
 };
 
+type Video = {
+  username: string;
+  videoElement : HTMLVideoElement;
+  camActive : boolean;
+  micActive : boolean;
+};
+
+interface VideoProps {
+  videos: Video[];
+}
+
 export const Video = () => {
   const videoElement = useRef<HTMLVideoElement>(null);
   const { username } = useClient();

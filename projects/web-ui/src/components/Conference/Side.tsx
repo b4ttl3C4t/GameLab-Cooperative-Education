@@ -103,6 +103,11 @@ const styles = {
   `,
 };
 
+const activeTabStyle = css`
+  background-color: #f0f0f0;
+  border-bottom: 2px solid var(--nicegreen);
+`;
+
 type Message = {
   username: string;
   time: string;
@@ -112,10 +117,12 @@ type Message = {
 interface SideProps {
   messages: Message[];
   handleSend: (content: string) => void;
+  attendees: string[];
 }
 
-export const Side: React.FC<SideProps> = ({ messages, handleSend }) => {
+export const Side: React.FC<SideProps> = ({ messages, handleSend, attendees }) => {
   const [inputValue, setInputValue] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'chats' | 'attendees'>('chats');
   
   const onSend = () => {
     if (inputValue.trim() === "") return;
@@ -134,41 +141,59 @@ export const Side: React.FC<SideProps> = ({ messages, handleSend }) => {
   return (
     <>
       <div css={styles.tab}>
-        <div className="chats">
+        <div 
+          className="chats" 
+          css={activeTab === 'chats' ? activeTabStyle : undefined}
+          onClick={() => setActiveTab('chats')}
+        >
           <FaCommentAlt />
           Chats
         </div>
-        <div className="attendies">
+        <div 
+          className="attendees" 
+          css={activeTab === 'attendees' ? activeTabStyle : undefined}
+          onClick={() => setActiveTab('attendees')}
+        >
           <FaUser />
-          Attendies
+          Attendees
         </div>
       </div>
       <div css={styles.chatBox}>
-        {messages.map((message, index) => (
-          <div key={index} css={styles.message}>
-            <div className="info">
-              <span className="username">{message.username}</span>
-              <span className="time">{message.time}</span>
+        {activeTab === 'chats' ? (
+          messages.map((message, index) => (
+            <div key={index} css={styles.message}>
+              <div className="info">
+                <span className="username">{message.username}</span>
+                <span className="time">{message.time}</span>
+              </div>
+              <div className="content">{message.content}</div>
             </div>
-            <div className="content">{message.content}</div>
+          ))
+        ) : (
+          attendees.map((attendee, index) => (
+            <div key={index} css={styles.message}>
+              <div className="content">{attendee}</div>
+            </div>
+          ))
+        )}
+      </div>
+      {activeTab === 'chats' && (
+        <div css={styles.chatInput}>
+          <div css={{ width: "80%" }}>
+            <input
+              type="text"
+              css={styles.inputBox}
+              placeholder="Type chat here.."
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
           </div>
-        ))}
-      </div>
-      <div css={styles.chatInput}>
-        <div css={{ width: "80%" }}>
-          <input
-            type="text"
-            css={styles.inputBox}
-            placeholder="Type chat here.."
-            value={inputValue}
-            onChange={e => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
+          <div css={{ width: "20%", marginLeft: 20 }}>
+            <button css={styles.sendBtn} onClick={onSend}>Send</button>
+          </div>
         </div>
-        <div css={{ width: "20%", marginLeft: 20 }}>
-          <button css={styles.sendBtn} onClick={onSend}>Send</button>
-        </div>
-      </div>
+      )}
     </>
   );
 };
