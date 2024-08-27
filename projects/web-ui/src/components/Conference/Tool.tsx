@@ -183,14 +183,14 @@ export const Tool: React.FC<ToolProps> = ({leaveChat}) => {
           onClick={toggleMic}
         >
           {micOpened ? <FaMicrophone /> : <FaMicrophoneSlash />}
-          <span className="tooltiptext">Close Microphone</span>
+          <span className="tooltiptext">Microphone</span>
         </div>
         <div
           css={[styles.noVideo, !camOpened && styles.nodevice, styles.tooltip]}
           onClick={toggleCam}
         >
           {camOpened ? <FaVideo /> : <FaVideoSlash />}
-          <span className="tooltiptext">Close Camera</span>
+          <span className="tooltiptext">Camera</span>
         </div>
         <div css={[styles.screenShare, styles.tooltip]}>
           <FaDesktop />

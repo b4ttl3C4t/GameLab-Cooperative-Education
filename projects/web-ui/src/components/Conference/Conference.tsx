@@ -56,12 +56,21 @@ type Message = {
   content: string;
 };
 
+type Video = {
+  username: string;
+  //videoElement : React.RefObject<HTMLVideoElement>;
+  camActive : boolean;
+  micActive : boolean;
+};
+
 export const Conference = () => {
   const { id } = useParams();
   const { username } = useClient();
   const [socket, setSocket] = useState<Socket | null>(null);
   // 將資料類型設定為Socket跟null，使其能在連線後從初始化的null改為Socket
   const [messages, setMessages] = useState<Message[]>([]);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [videoList, setvideoList] = useState<string[]>([]);
   const [attendees, setAttendees] = useState<string[]>([]);
   const navigate = useNavigate();
 
@@ -81,7 +90,19 @@ export const Conference = () => {
 
     const handleAttendees = (attendees: string[]) => {
       const newAttendees = Object.values(attendees);
-      setAttendees(newAttendees)
+      setAttendees(newAttendees);
+      const UsernameList = Array.from(new Set(newAttendees));
+      for(let i = 0; i < UsernameList.length; ++i){
+        if(UsernameList[i]!=="" && videoList.indexOf(UsernameList[i])===-1){
+          videoList.push(UsernameList[i]);
+          const newVideo: Video = {
+            username: UsernameList[i],
+            camActive: false,
+            micActive: false,
+          };
+          setVideos(prevVideos => [...prevVideos, newVideo])
+        }
+      }
     }
 
     newSocket.on("attendees", handleAttendees);
@@ -118,6 +139,10 @@ export const Conference = () => {
 
   const leaveChat = () => {
     if (socket) {
+      const updatedvideos = videos.filter(video => video.username !== username);
+      setVideos(updatedvideos);
+      const updatedvideoList = videoList.filter(video => video !== username);
+      setvideoList(updatedvideoList);
       socket.disconnect();
       navigate(`/`); // 回到主頁面
     }
@@ -126,7 +151,7 @@ export const Conference = () => {
   return (
     <div css={styles.container}>
       <div css={styles.leftSide}>
-        <Video />
+        <Video videos={videos}/>
         <Tool leaveChat={leaveChat}/>
       </div>
       <div css={styles.rightSide}>

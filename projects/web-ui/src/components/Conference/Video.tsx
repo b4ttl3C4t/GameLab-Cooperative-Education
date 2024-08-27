@@ -7,10 +7,12 @@ import { useEffect, useRef } from "react";
 const styles = {
   wrap: css`
     height: 75vh;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
   `,
   box: css`
     background-color: #353b48;
-    height: 100%;
+    height: 25%;
     min-height: 200px;
     width: 100%;
     border-radius: 5px;
@@ -54,7 +56,7 @@ const styles = {
 
 type Video = {
   username: string;
-  videoElement : HTMLVideoElement;
+  //videoElement : React.RefObject<HTMLVideoElement>;
   camActive : boolean;
   micActive : boolean;
 };
@@ -63,7 +65,7 @@ interface VideoProps {
   videos: Video[];
 }
 
-export const Video = () => {
+export const Video: React.FC<VideoProps> = ({videos}) => {
   const videoElement = useRef<HTMLVideoElement>(null);
   const { username } = useClient();
   const { requestDevice, allowed, micOpened, camOpened } =
@@ -98,6 +100,24 @@ export const Video = () => {
           Video Off
         </div>}
       </div>
+        {videos.map((video, index) => (
+          video.username !== username && (
+          <div key={index} css={styles.box}>
+            <video
+              css={styles.frame}
+              ref={videoElement}
+              autoPlay
+              playsInline
+            ></video>
+            <div css={styles.nameTag}>{video.username}</div>
+            <div css={styles.mute}>
+              {video.micActive ? <FaMicrophone /> : <FaMicrophoneSlash />}
+            </div>
+            {!video.camActive && <div css={styles.videoOff}>
+              Video Off
+            </div>}
+          </div>
+        )))}
     </div>
   );
 };
